@@ -24,7 +24,6 @@ class TodoViewModel extends ChangeNotifier {
   void toggleTheme() {
     isDarkMode = !isDarkMode;
     notifyListeners(); // Notify listeners to rebuild the UI with the new theme
-    debugPrint("notifyListeners and darkMode is $isDarkMode");
   }
 
   // Initialize the last ID by checking the existing tasks

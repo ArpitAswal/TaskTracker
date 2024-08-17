@@ -6,7 +6,6 @@ import '../../ViewModels/todo_view_model.dart';
 import 'add_update_cardWidget.dart';
 
 Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewModel provider) {
-  debugPrint("index $ind debugCalled and darkMode is ${provider.isDarkMode}");
 
   return ListView.builder(
     padding: const EdgeInsets.only(top: 16.0),

@@ -34,7 +34,7 @@ Future addUpdateCardWidget(
               child: Container(
                   width: MediaQuery.of(context).size.width,
                   constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height * 0.28,
+                      minHeight: MediaQuery.of(context).size.height * 0.3,
                       maxHeight: MediaQuery.of(context).size.height * 0.4),
                   margin: const EdgeInsets.symmetric(
                       horizontal: 24.0, vertical: 8.0),
@@ -79,7 +79,7 @@ Future addUpdateCardWidget(
                         ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -88,6 +88,7 @@ Future addUpdateCardWidget(
                                 onPressed: () {
                                   value.setTitleError("");
                                   value.setDescriptionError("");
+                                  value.setStartError("");
                                   Navigator.pop(context);
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -133,6 +134,9 @@ Future addUpdateCardWidget(
                                         descriptionController.clear();
                                         startController.clear();
                                         endController.clear();
+                                        value.setTitleError("");
+                                        value.setDescriptionError("");
+                                        value.setStartError("");
                                         Navigator.pop(context);
                                       }
                                     },
@@ -162,6 +166,8 @@ Future addUpdateCardWidget(
                                           titleController.text.toString();
                                       task.description =
                                           descriptionController.text.toString();
+                                      task.startDate = startController.text.toString();
+                                      task.endDate = endController.text.toString();
                                       onSuccess(task);
                                       Navigator.pop(context);
                                     },
