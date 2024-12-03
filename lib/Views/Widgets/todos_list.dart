@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:todo_task/Models/todo_model.dart';
 
-import '../../ViewModels/todo_view_model.dart';
+import '../../ViewModels/todo_provider.dart';
 import 'add_update_cardWidget.dart';
 
-Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewModel provider) {
-
+Widget todosList(List<TodoModel> todos, int ind, BuildContext context,
+    TodoProvider provider) {
   return ListView.builder(
     padding: const EdgeInsets.only(top: 16.0),
     itemCount: todos.length,
@@ -75,34 +75,29 @@ Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewM
                     : const SizedBox()
               ]),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          "Task",
-                          style: TextStyle(
-                              color: Colors.indigo,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20),
-                        ),
-                        Flexible(
-                          fit: FlexFit.loose,
-                          child: Text(
-                            todo.id.toString(),
-                            style: const TextStyle(
-                                color: Colors.indigo,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22),
-                          ),
-                        ),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      const Text(
+                        "Task",
+                        style: TextStyle(
+                            color: Colors.indigo,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                      ),
+                      Text(
+                        todo.id.toString(),
+                        style: const TextStyle(
+                            color: Colors.indigo,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22),
+                      ),
+                    ],
                   ),
                   const SizedBox(
                     width: 12.0,
@@ -110,7 +105,6 @@ Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewM
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           todo.title,
@@ -123,7 +117,7 @@ Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewM
                                 ? Colors.white
                                 : Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 18,
                           ),
                         ),
                         Text(
@@ -143,9 +137,8 @@ Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewM
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8.0),
+                  const SizedBox(width: 12.0),
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         "Task Start",
@@ -163,29 +156,22 @@ Widget todosList(List<TodoModel> todos, int ind, BuildContext context, TodoViewM
                             fontWeight: FontWeight.w400,
                             fontSize: 12),
                       ),
-                      const SizedBox(
-                        height: 12.0,
+                      Text(
+                        "Task End",
+                        style: TextStyle(
+                            color: provider.isDarkMode
+                                ? Colors.white
+                                : Colors.black,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12),
                       ),
-                      (todo.endDate != null && todo.endDate!.isNotEmpty)
-                          ? Text(
-                              "Task End",
-                              style: TextStyle(
-                                  color: provider.isDarkMode
-                                      ? Colors.white
-                                      : Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 12),
-                            )
-                          : const SizedBox(),
-                      (todo.endDate != null && todo.endDate!.isNotEmpty)
-                          ? Text(
-                              todo.endDate.toString(),
-                              style: const TextStyle(
-                                  color: Colors.indigo,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 12),
-                            )
-                          : const SizedBox()
+                      Text(
+                        todo.endDate.toString(),
+                        style: const TextStyle(
+                            color: Colors.indigo,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12),
+                      )
                     ],
                   ),
                 ]),

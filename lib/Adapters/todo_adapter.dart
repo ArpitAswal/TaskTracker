@@ -31,6 +31,6 @@ class TodoAdapter extends TypeAdapter<TodoModel> {
     writer.writeBool(obj.isCompleted);
     writer.writeInt(obj.id);
     writer.writeString(obj.startDate);
-    writer.writeString(obj.endDate ?? "");
+    writer.writeString(obj.endDate);
   }
 }

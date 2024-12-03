@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_task/ViewModels/todo_view_model.dart';
+import 'package:todo_task/ViewModels/todo_provider.dart';
 
 import '../../Models/todo_model.dart';
 
@@ -24,8 +24,8 @@ Future addUpdateCardWidget(
       useSafeArea: true,
       dimBackground: true,
       builder: (context) {
-        return Consumer<TodoViewModel>(builder:
-            (BuildContext context, TodoViewModel value, Widget? child) {
+        return Consumer<TodoProvider>(
+            builder: (BuildContext context, TodoProvider value, Widget? child) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: PopupCard(
@@ -63,7 +63,6 @@ Future addUpdateCardWidget(
                                   errorText: value.startError,
                                   labelText: "Start Date",
                                   context: context,
-                                  isStart: true,
                                   darkMode: value.isDarkMode)),
                           const SizedBox(
                             width: 36.0,
@@ -74,7 +73,6 @@ Future addUpdateCardWidget(
                                   errorText: "",
                                   labelText: "End Date",
                                   context: context,
-                                  isStart: false,
                                   darkMode: value.isDarkMode)),
                         ],
                       ),
@@ -121,9 +119,7 @@ Future addUpdateCardWidget(
                                               descriptionController.text,
                                           isCompleted: false,
                                           startDate: startController.text,
-                                          endDate: endController.text.isEmpty
-                                              ? null
-                                              : endController.text);
+                                          endDate: endController.text);
                                       if (checkValidation(
                                           titleController,
                                           descriptionController,
@@ -166,8 +162,10 @@ Future addUpdateCardWidget(
                                           titleController.text.toString();
                                       task.description =
                                           descriptionController.text.toString();
-                                      task.startDate = startController.text.toString();
-                                      task.endDate = endController.text.toString();
+                                      task.startDate =
+                                          startController.text.toString();
+                                      task.endDate =
+                                          endController.text.toString();
                                       onSuccess(task);
                                       Navigator.pop(context);
                                     },
@@ -205,7 +203,7 @@ bool checkValidation(
   TextEditingController titleController,
   TextEditingController descriptionController,
   TextEditingController startController,
-  TodoViewModel value,
+  TodoProvider value,
 ) {
   bool b = true;
   if (titleController.text.isEmpty) {
@@ -256,14 +254,13 @@ Widget dateFieldWidget(
     required String errorText,
     required String labelText,
     required BuildContext context,
-    required bool isStart,
     required bool darkMode}) {
   return TextField(
     controller: controller,
     cursorColor: darkMode ? Colors.white : Colors.indigo,
     readOnly: true,
     onTap: () async {
-      final date = await _selectDate(context, isStart);
+      final date = await _selectDate(context);
       if (date != null) {
         controller.text = date.toString();
       }
@@ -283,7 +280,7 @@ Widget dateFieldWidget(
   );
 }
 
-Future<String?> _selectDate(BuildContext context, bool isStart) async {
+Future<String?> _selectDate(BuildContext context) async {
   final dateFormat = DateFormat("dd.MM.yy");
   DateTime? pickedDate = await showDatePicker(
     context: context,
@@ -293,11 +290,7 @@ Future<String?> _selectDate(BuildContext context, bool isStart) async {
   );
 
   if (pickedDate != null) {
-    if (isStart) {
-      return dateFormat.format(pickedDate);
-    } else {
-      return dateFormat.format(pickedDate);
-    }
+    return dateFormat.format(pickedDate);
   }
   return null;
 }

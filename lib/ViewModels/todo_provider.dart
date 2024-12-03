@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 
 import '../Models/todo_model.dart';
 
-class TodoViewModel extends ChangeNotifier {
+class TodoProvider extends ChangeNotifier {
   final Box<TodoModel> _todoBox = Hive.box<TodoModel>('todoBox');
   List<TodoModel> _completedTask = <TodoModel>[];
   String _titleError = "";
@@ -27,7 +27,7 @@ class TodoViewModel extends ChangeNotifier {
   }
 
   // Initialize the last ID by checking the existing tasks
-  TodoViewModel() {
+  TodoProvider() {
     setCompletedTask();
     _initializeLastId();
   }

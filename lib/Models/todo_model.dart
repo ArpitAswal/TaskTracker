@@ -5,7 +5,7 @@ class TodoModel {
   bool isCompleted;
   int id;
   String startDate;
-  String? endDate;
+  String endDate;
 
   TodoModel({
     required this.title,
@@ -13,6 +13,6 @@ class TodoModel {
     this.isCompleted = false,
     required this.id,
     required this.startDate,
-    this.endDate,
+    required this.endDate,
   });
 }

@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import '../Models/todo_model.dart';
-import '../ViewModels/todo_view_model.dart';
+import '../Service/notification.dart';
+import '../ViewModels/todo_provider.dart';
 import 'Widgets/add_update_cardWidget.dart';
 import 'Widgets/task_status_widget.dart';
 import 'Widgets/todos_list.dart';
@@ -20,19 +21,20 @@ class TaskScreen extends StatefulWidget {
 class _TaskScreenState extends State<TaskScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCnt;
-  late TodoViewModel outerProvider;
+  late TodoProvider outerProvider;
 
   @override
   void initState() {
     super.initState();
-    outerProvider = Provider.of<TodoViewModel>(context, listen: false);
+    outerProvider = Provider.of<TodoProvider>(context, listen: false);
     _tabCnt = TabController(length: 2, vsync: this);
-    _tabCnt.addListener((){
-      if(_tabCnt.index == 0){
+    _tabCnt.addListener(() {
+      if (_tabCnt.index == 0) {
         outerProvider.setIndex(0);
-      } else{
+      } else {
         outerProvider.setIndex(1);
-      } });
+      }
+    });
   }
 
   @override
@@ -43,79 +45,79 @@ class _TaskScreenState extends State<TaskScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return DefaultTabController(
       initialIndex: 0,
       length: 2,
       child: Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(120.0),
-          child: Consumer(
-            builder: (BuildContext context, TodoViewModel provider, Widget? child) {
-              return AppBar(
-                title: Text(widget.title),
-                actions: [
-                  IconButton(
-                    icon: Icon(
-                      provider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                    ),
+          child: Consumer(builder:
+              (BuildContext context, TodoProvider provider, Widget? child) {
+            return AppBar(
+              title: Text(widget.title),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    provider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  ),
+                  onPressed: () {
+                    provider.toggleTheme(); // Toggle the theme
+                  },
+                ),
+                IconButton(
                     onPressed: () {
-                      provider.toggleTheme(); // Toggle the theme
+                      showMessage(context, provider);
+                    },
+                    icon: const Icon(Icons.delete_forever_rounded)),
+                IconButton(
+                    onPressed: () {
+                      SystemNavigator.pop();
+                    },
+                    icon: const Icon(Icons.exit_to_app))
+              ],
+              bottom: TabBar(
+                controller: _tabCnt,
+                indicatorColor: Colors.indigo,
+                dividerColor: Colors.transparent,
+                tabs: [
+                  taskStatusWidget(
+                    text: "Pending",
+                    bgColor:
+                        (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
+                    shdColor:
+                        (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
+                    bodColor:
+                        (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
+                    textColor:
+                        (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
+                    onPressed: () {
+                      _tabCnt.animateTo(0);
                     },
                   ),
-                  IconButton(
-                      onPressed: () {
-                        showMessage(context, provider);
-                      },
-                      icon: const Icon(Icons.delete_forever_rounded)),
-                  IconButton(
-                      onPressed: () {
-                        SystemNavigator.pop();
-                      },
-                      icon: const Icon(Icons.exit_to_app))
+                  taskStatusWidget(
+                    text: "Completed",
+                    bgColor:
+                        (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
+                    shdColor:
+                        (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
+                    bodColor:
+                        (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
+                    textColor:
+                        (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
+                    onPressed: () {
+                      _tabCnt.animateTo(1);
+                    },
+                  ),
                 ],
-                bottom: TabBar(
-                  controller: _tabCnt,
-                  indicatorColor: Colors.indigo,
-                  dividerColor: Colors.transparent,
-                  tabs: [
-                    taskStatusWidget(
-                      text: "Pending",
-                      bgColor:
-                      (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
-                      shdColor:
-                      (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
-                      bodColor:
-                      (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
-                      textColor:
-                      (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
-                      onPressed: () {
-                        _tabCnt.animateTo(0);
-                      },
-                    ),
-                    taskStatusWidget(
-                      text: "Completed",
-                      bgColor:
-                      (provider.tabIndex == 0) ? Colors.white : Colors.indigo,
-                      shdColor:
-                      (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
-                      bodColor:
-                      (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
-                      textColor:
-                      (provider.tabIndex == 0) ? Colors.indigo : Colors.white,
-                      onPressed: () {
-                        _tabCnt.animateTo(1);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            }),
+              ),
+            );
+          }),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await addUpdateCardWidget(context, (TodoModel newTodo) {
               outerProvider.addTodo(newTodo);
+              PushNotifications().showNotification(todo: newTodo);
             });
           },
           isExtended: true,
@@ -152,17 +154,17 @@ class _TaskScreenState extends State<TaskScreen>
                       ],
                     );
                   } else {
-                    return Consumer(
-                        builder: (BuildContext context, TodoViewModel value, Widget? child) {
-                          return  todosList(todos, 0, context, value);
-                        });
+                    return Consumer(builder: (BuildContext context,
+                        TodoProvider value, Widget? child) {
+                      return todosList(todos, 0, context, value);
+                    });
                   }
                 },
               ),
             ),
-            Consumer<TodoViewModel>(
+            Consumer<TodoProvider>(
               builder:
-                  (BuildContext context, TodoViewModel value, Widget? child) {
+                  (BuildContext context, TodoProvider value, Widget? child) {
                 return SizedBox(
                   height: MediaQuery.of(context).size.height,
                   width: MediaQuery.of(context).size.width,
@@ -189,7 +191,7 @@ class _TaskScreenState extends State<TaskScreen>
     );
   }
 
-  void showMessage(BuildContext context, TodoViewModel provider) {
+  void showMessage(BuildContext context, TodoProvider provider) {
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -229,6 +231,7 @@ class _TaskScreenState extends State<TaskScreen>
               TextButton(
                   onPressed: () {
                     provider.resetTasks();
+                    Navigator.pop(context);
                   },
                   child: Text(
                     "Delete",
