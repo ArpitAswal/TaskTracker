@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_task/ViewModels/manage_notification_provider.dart';
 import '../Models/todo_model.dart';
 import '../Service/notification.dart';
 import '../ViewModels/todo_provider.dart';
@@ -22,11 +25,14 @@ class _TaskScreenState extends State<TaskScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCnt;
   late TodoProvider outerProvider;
+  late ManageNotificationProvider notificationProvider;
 
   @override
   void initState() {
     super.initState();
     outerProvider = Provider.of<TodoProvider>(context, listen: false);
+    notificationProvider =
+        Provider.of<ManageNotificationProvider>(context, listen: false);
     _tabCnt = TabController(length: 2, vsync: this);
     _tabCnt.addListener(() {
       if (_tabCnt.index == 0) {
@@ -35,12 +41,90 @@ class _TaskScreenState extends State<TaskScreen>
         outerProvider.setIndex(1);
       }
     });
+    getPermission();
   }
 
   @override
   void dispose() {
     _tabCnt.dispose();
     super.dispose();
+  }
+
+  Future<void> getPermission() async {
+    var status = await Permission.ignoreBatteryOptimizations.status;
+
+    if (status.isGranted) {
+      // User has granted permission, proceed with app logic
+      notificationProvider.initBackground();
+      outerProvider.setPermission("allowed");
+    } else if ((status.isDenied || status.isPermanentlyDenied) && (outerProvider.getPermission() != "denied")) {
+      // Handle case where user denied permission
+      showPopupCard(
+          context: context,
+          alignment: Alignment.center,
+          useSafeArea: true,
+          dimBackground: true,
+          builder: (context) {
+            return PopupCard(
+                shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(24.0))),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.18,
+                  width: MediaQuery.of(context).size.width * 0.82,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                    ).copyWith(top: 12.0),
+                    child: Column(
+                      children: [
+                        const Text(
+                            "If you wish to get schedule notification daily you have to turn off the battery optimisation."),
+                        const SizedBox(height: 4.0),
+                        RichText(
+                          text: const TextSpan(
+                              text: "",
+                              children: <InlineSpan>[
+                                TextSpan(
+                          text: "Note: ",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                                )),
+                                TextSpan(
+                                  text:
+                                  " After denying the permission, you have to turn off the battery optimisation manually from settings to get the schedule notification.",
+                                    style: TextStyle(
+                                      color: Colors.black45,))
+                              ]),
+                        ),
+                        const SizedBox(height: 4.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                                onPressed: () {
+                                  outerProvider.setPermission("denied");
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text("Deny", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),)),
+                            const SizedBox(
+                              width: 6.0,
+                            ),
+                            TextButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  await Permission.ignoreBatteryOptimizations
+                                      .request().then((value){
+                                          getPermission();
+                                  });
+                                },
+                                child: const Text("Allow", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      ],
+                    )));
+          });
+    }
   }
 
   @override

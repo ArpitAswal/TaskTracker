@@ -44,13 +44,11 @@ class PushNotifications {
     final location = tz.getLocation('Asia/Kolkata');
     final now = tz.TZDateTime.now(location);
     tz.TZDateTime scheduledDate =
-        tz.TZDateTime(location, now.year, now.month, now.day, hour, 0, 0);
+        tz.TZDateTime(location, now.year, now.month, now.day, now.hour, (now.minute + 1), now.second);
     await _notificationPlugin.zonedSchedule(
         (show == null)
             ? -1
-            : (show)
-                ? 0
-                : 1,
+            : 1,
         (show == null)
             ? "Task Pending"
             : (show)

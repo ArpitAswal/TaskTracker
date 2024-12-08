@@ -5,6 +5,7 @@ import '../Models/todo_model.dart';
 
 class TodoProvider extends ChangeNotifier {
   final Box<TodoModel> _todoBox = Hive.box<TodoModel>('todoBox');
+  final Box<String> _hiveNotPer = Hive.box<String>('notification_permission');
   List<TodoModel> _completedTask = <TodoModel>[];
   String _titleError = "";
   String _startError = "";
@@ -73,6 +74,14 @@ class TodoProvider extends ChangeNotifier {
   void setCompletedTask() {
     _completedTask = _todoBox.values.where((todo) => todo.isCompleted).toList();
     notifyListeners();
+  }
+
+  void setPermission(String value){
+    _hiveNotPer.put('permission', value);
+  }
+
+  String getPermission(){
+    return _hiveNotPer.get('permission') ?? "";
   }
 
   //Let's do CRUD operation
