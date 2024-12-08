@@ -1,68 +1,150 @@
-Project Name: Todo Tasks
-Description:
+# Task Tracker
 
-Todo Tasks is a mobile application built using the Flutter framework, designed to help users manage their daily tasks efficiently. The app provides an intuitive and user-friendly interface, allowing users to add, edit, and track their tasks, whether they are related to personal goals, study plans, or future events.
+TaskTracker is a mobile application developed using the Flutter framework, designed to help users efficiently manage and track their daily tasks. With a user-friendly interface and a range of features, it simplifies task organization while providing timely notifications to keep users on track.
 
-Features:
+TaskTracker is more than just a task management tool—it is a productivity partner that helps users organize their lives, stay informed about their progress, and receive timely reminders to ensure they never miss a task.
 
-Splash Screen:
-The app opens with an animated splash screen, enhancing the initial user experience.
+## Features
 
-Main Screen (Home Screen):
-The main screen is where users can view and manage their tasks. At the top of the screen, there are three key features:
+- Splash Screen
+Opens with an animated splash screen for an engaging and polished user experience.
 
-Toggle Theme: Allows users to switch between light and dark themes.
+- Main Screen (Home Screen)
+The home screen is the central hub for task management, offering the following features at the top:
 
-Delete All Tasks: Provides an option to delete all tasks from the database.
+     . Toggle Theme: Switch between light and dark themes.
 
-Exit App: An icon button to close the app.
+     . Delete All Tasks: Remove all tasks from the database with a single click.
 
-Task Management:
-The app uses a TabBar and TabBarView to organize tasks into two categories:
+     . Exit App: Close the app using an icon button.
 
-Pending Tasks: Displays all added tasks that are yet to be completed.
+- Task Management
+Tasks are organized into two categories using TabBar and TabBarView:
 
-Completed Tasks: Shows tasks that have been marked as completed.
+     . Pending Tasks: Displays tasks yet to be completed.
 
-Users can navigate between these views using the tabs or by sliding the screen.
+     . Completed Tasks: Lists tasks marked as done.
 
-Adding Tasks:
-Users can create new tasks by providing a title, description, and start date, which are required fields.
+Navigation between tabs can be done using the tabs themselves or by swiping the screen.
+
+- Adding Tasks
+Users can add new tasks by providing the following required details:
+
+    . Title: The name of the task.
+
+    . Description: Details about the task.
+
+    . Start Date: The date when the task begins.
+
+    . End Date: The date when the task should end.
 
 Each task comes with three management options:
 
-Edit Task: Accessible by sliding the task from left to right.
+    . Edit Task: Slide from left to right to modify task details.
+    
+    . Delete Task: Slide from right to left to remove the task.
+    
+    . Mark as Done: For pending tasks, mark them as completed.
 
-Delete Task: Accessible by sliding the task from right to left.
+- Completed Tasks View
+Tasks marked as completed are displayed in a separate tab.
 
-Mark as Done: Available for pending tasks, allowing users to mark tasks as completed.
+   . In this view, users can delete tasks by sliding from right to left.
 
-Completed Tasks View:
-In the completed tasks view, users can only delete tasks by sliding from right to left.
+- Local Notifications
 
-Use Cases:
+   . Task Addition Notification: A notification is displayed whenever a new task is added.
 
-Daily Task Management: Users can record and track their daily tasks, whether they are related to work, study, or personal goals.
+   . Morning Reminder: Notifies the user to either complete today’s tasks or add new ones if no tasks are pending.
 
-Study Planning: The app can be used to organize study plans, helping users focus on specific subjects or topics.
+   . Night Reminder: Reminds the user about pending tasks that need to be completed for the day.
 
-Event Tracking: Users can add future events or goals, ensuring they stay on top of important activities.
+## APP UI
 
-Technologies Used:
-
-Flutter: The primary framework for building the mobile application.
-
-Dart: The programming language used with Flutter.
-
-App UI:
-
-https://github.com/user-attachments/assets/d55338e8-b045-4fb0-9575-ff13ccd51330
 ![photo_1_2024-08-16_01-18-06](https://github.com/user-attachments/assets/d9287958-9391-4f60-abdf-6d26571c19c0)
 ![photo_2_2024-08-16_01-18-06](https://github.com/user-attachments/assets/841ab848-0287-4148-af67-5c02097f858c)
 ![photo_3_2024-08-16_01-18-06](https://github.com/user-attachments/assets/dd47db21-661e-4164-8b48-055074b1ec7b)
 ![photo_4_2024-08-16_01-18-06](https://github.com/user-attachments/assets/3743fdaf-2ab2-4836-b84e-ca478472cf37)
 
-Design Philosophy:
+## Installation
 
-Todo Tasks is designed to be a versatile and practical tool for users to manage their daily lives. The app’s simple yet effective interface ensures that users can easily add, edit, and track their tasks, making it an ideal companion for staying organized.
+To run this project locally:
+
+Clone the repository: git clone https://github.com/ArpitAswal/TaskTracker.git
+
+Navigate to the project directory: cd TaskTracker
+
+Install dependencies: flutter pub get
+
+Run the app: flutter run
+    
+## Tech Stack
+
+**Flutter**: The primary framework for building the mobile application.
+
+**Dart**: The programming language used with Flutter.
+
+**Hive**: To store task information whether they are complete or not.
+
+**Local Notifications**: To deliver real-time reminders and alerts.
+
+## Usage/Examples
+
+- Daily Task Management: Users can record and track their daily tasks, whether they are related to work, study, or personal goals.
+
+- Study Planning: The app can be used to organize study plans, helping users focus on specific subjects or topics.
+
+- Event Tracking: Add and track future events or goals to stay on top of important activities.
+
+## Note
+
+- To enable daily morning and night notifications, users must disable battery optimization for this app. This ensures the app can schedule and deliver notifications reliably.
+
+- Scheduled notifications may occasionally be delayed due to variations in operating system performance and background task handling by different devices.
+
+## Challenges
+
+- One of the most challenging aspects of this project was implementing a mechanism to schedule notifications reliably at specific times (morning and night) on a daily basis.
+
+- To achieve this, I thoroughly researched and identified the WorkManager package as a suitable solution. I conducted extensive testing and iterations to understand its functionality and fine-tune the implementation to meet the app's requirements.
+
+- While the solution is not yet perfect, it successfully fulfills the core functionality needed for the app and provides the desired user experience. Further refinements and optimizations can be made in future iterations.
+
+## Future Enhancements
+
+- Task History by Calendar Month:
+
+   . Allow users to view a history of their tasks categorized by calendar months and years.
+
+   . Provide statistics on the number of tasks completed in each month.
+
+- Task Alarm:
+
+   . Enable users to set a specific time for each task, provide notifications or alarms when the set time ends, notifying users that the allocated time for the task has been completed.
+  
+## Contributing
+
+Contributions are always welcome!
+
+Please follow these steps:
+
+1. Fork the repository.
+
+2. Create a new branch (git checkout -b feature-branch).
+
+3. Make your changes and commit them (git commit -m 'Add new feature').
+
+4. Push the changes to your fork (git push origin feature-branch).
+
+5. Create a pull request.
+
+## Feedback
+
+- If you have any feedback, please reach out to me at arpitaswal995@gmail.com
+
+- If you face an issue, then open an issue in a GitHub repository.
+
+## Design Philosophy
+
+TaskTracker is designed to offer a seamless and practical experience for task management. Its minimalist yet powerful interface ensures that users can easily add, edit, and track their tasks, staying organized and productive throughout their day.
 
