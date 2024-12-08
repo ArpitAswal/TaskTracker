@@ -1,4 +1,9 @@
-# Task Tracker
+## App Logo
+Click on a logo to download the latest version of the app apk file:
+  
+<a href="https://github.com/ArpitAswal/TaskTracker/releases/download/v1.0.0/TaskTracker.apk"> ![ic_launcher](https://github.com/user-attachments/assets/7ae48f6f-cef0-4588-b2d5-89243e7cf083)</a>
+
+# Project Title: Task Tracker
 
 TaskTracker is a mobile application developed using the Flutter framework, designed to help users efficiently manage and track their daily tasks. With a user-friendly interface and a range of features, it simplifies task organization while providing timely notifications to keep users on track.
 
