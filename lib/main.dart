@@ -17,20 +17,23 @@ import 'Views/todo_screen.dart';
 const morningNotification = "MorningNotification";
 const nightNotification = "NightNotification";
 
+// Callback function that runs in the background.
+// Workmanager uses this to execute tasks based on their unique task name.
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     switch (task) {
       case morningNotification:
-        await morningHive();
+        await morningHive();  // Execute morning-related tasks
         break;
       case nightNotification:
-        await nightHive();
+        await nightHive(); // Execute night-related tasks
         break;
     }
-    return Future.value(true);
+    return Future.value(true); // Indicates successful task execution.
   });
 }
 
+// Initializes Hive for use in isolates. Required when accessing Hive in a background thread.
 Future<Box<TodoModel>> initializeHiveForIsolate<T>() async {
   tz.initializeTimeZones();
 
@@ -43,29 +46,40 @@ Future<Box<TodoModel>> initializeHiveForIsolate<T>() async {
 }
 
 Future<void> morningHive() async {
-  final box = await initializeHiveForIsolate<TodoModel>();
+  final box = await initializeHiveForIsolate<TodoModel>(); // Access the Hive box for todos.
   if (box.values.isEmpty) {
+    // If there are no tasks, schedule a notification to start new tasks.
     PushNotifications().scheduleNotification(show: false, hour: 9);
   } else {
     // Check if any task is incomplete
     bool hasPendingTasks = box.values.any((task) {
       return !task.isCompleted;
     });
-    PushNotifications().scheduleNotification(show: hasPendingTasks, hour: 15);
+    // Schedule notification based on whether tasks are pending.
+    PushNotifications().scheduleNotification(show: hasPendingTasks, hour: 9);
   }
   await box.close();
 }
 
 Future<void> nightHive() async {
-  final box = await initializeHiveForIsolate<TodoModel>();
+  final box = await initializeHiveForIsolate<TodoModel>(); // Access the Hive box for todos.
   if (box.values.isNotEmpty) {
     // Check if any task is incomplete
-    String date = DateFormat("dd.MM.yy").format(DateTime.now());
+    String date = DateFormat("dd.MM.yy").format(DateTime.now()); // Get today's date in specific format.
     bool hasPendingTasks = box.values.any((task) {
-      return !task.isCompleted && date == task.endDate;
+      return !task.isCompleted &&
+          int.parse(date.split(".").first) >=
+              int.parse(task.endDate.split(".").first);
     });
     if (hasPendingTasks) {
-      PushNotifications().scheduleNotification(show: null, hour: 17);
+      // Show a notification about pending tasks.
+      PushNotifications().showNotification(
+          todo: TodoModel(
+              title: 'Task Pending',
+              description: 'Last day of today pending tasks',
+              id: -1,
+              startDate: '',
+              endDate: ''));
     }
   }
   await box.close();
@@ -74,16 +88,15 @@ Future<void> nightHive() async {
 void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); // It is used so that void main function can be initiated after successfully initialization of data
-  PushNotifications.init();
-  tz.initializeTimeZones();
-  // Initialize Hive
-  await Hive.initFlutter();
-  // Register the adapter
-  Hive.registerAdapter(TodoAdapter());
+  PushNotifications.init(); // Initialize the notification system.
+  tz.initializeTimeZones(); // Initialize timezone data.
+  await Hive.initFlutter(); // Initialize Hive
+  Hive.registerAdapter(TodoAdapter()); // Register the adapter
+
   // Open a box (database)
   await Hive.openBox<TodoModel>('todoBox');
   await Hive.openBox<String>('notification_permission');
-  runApp(MultiProvider(
+  runApp(MultiProvider(   // Start the app with state management using providers
     providers: [
       ChangeNotifierProvider(
         create: (BuildContext context) => TodoProvider(),

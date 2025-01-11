@@ -13,6 +13,7 @@ class TodoProvider extends ChangeNotifier {
   int _tabIndex = 0;
   int _taskIndex = 0;
   bool isDarkMode = false;
+  bool _navigatingToSettings = false;
 
   int get taskIndex => (_taskIndex += 1);
   int get tabIndex => _tabIndex;
@@ -21,6 +22,7 @@ class TodoProvider extends ChangeNotifier {
   String get descriptionError => _descriptionError;
   List<TodoModel> get completedTask => _completedTask;
   ThemeMode get currentTheme => isDarkMode ? ThemeMode.dark : ThemeMode.light;
+  bool get navigatingToSettings => _navigatingToSettings;
 
   void toggleTheme() {
     isDarkMode = !isDarkMode;
@@ -76,12 +78,12 @@ class TodoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setPermission(String value){
-    _hiveNotPer.put('permission', value);
-  }
-
   String getPermission(){
     return _hiveNotPer.get('permission') ?? "";
+  }
+
+  void openSetting(bool flag){
+   _navigatingToSettings = true;
   }
 
   //Let's do CRUD operation

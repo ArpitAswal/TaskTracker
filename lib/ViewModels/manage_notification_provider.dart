@@ -7,11 +7,13 @@ import '../main.dart';
 class ManageNotificationProvider extends ChangeNotifier {
 
   void initBackground() async {
+    // Initialize background tasks using Workmanager.
     Workmanager().initialize(
       callbackDispatcher, // Replace with your callback function
-      isInDebugMode: false,
+      isInDebugMode: false, // Disable debug mode for production.
     );
 
+    // Register a daily morning task.
     Workmanager().registerPeriodicTask(
       "MorningTaskCheck",
       morningNotification,
@@ -26,6 +28,7 @@ class ManageNotificationProvider extends ChangeNotifier {
       initialDelay: morningDelay(), // Calculate the delay for the first run
     );
 
+    // Register a daily night task.
     Workmanager().registerPeriodicTask(
       "NightTaskCheck",
       nightNotification,

@@ -22,7 +22,7 @@ class TaskScreen extends StatefulWidget {
 }
 
 class _TaskScreenState extends State<TaskScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabCnt;
   late TodoProvider outerProvider;
   late ManageNotificationProvider notificationProvider;
@@ -30,6 +30,7 @@ class _TaskScreenState extends State<TaskScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     outerProvider = Provider.of<TodoProvider>(context, listen: false);
     notificationProvider =
         Provider.of<ManageNotificationProvider>(context, listen: false);
@@ -50,14 +51,22 @@ class _TaskScreenState extends State<TaskScreen>
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && outerProvider.navigatingToSettings) {
+      // The app has returned from the settings screen.
+      getPermission(); // Recheck the permission status here.
+      outerProvider.openSetting(false);
+    }
+  }
+
   Future<void> getPermission() async {
     var status = await Permission.ignoreBatteryOptimizations.status;
 
     if (status.isGranted) {
       // User has granted permission, proceed with app logic
       notificationProvider.initBackground();
-      outerProvider.setPermission("allowed");
-    } else if ((status.isDenied || status.isPermanentlyDenied) && (outerProvider.getPermission() != "denied")) {
+    } else if ((status.isDenied || status.isPermanentlyDenied)) {
       // Handle case where user denied permission
       showPopupCard(
           context: context,
@@ -103,7 +112,6 @@ class _TaskScreenState extends State<TaskScreen>
                           children: [
                             TextButton(
                                 onPressed: () {
-                                  outerProvider.setPermission("denied");
                                   Navigator.of(context).pop();
                                 },
                                 child: const Text("Deny", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),)),
@@ -114,9 +122,8 @@ class _TaskScreenState extends State<TaskScreen>
                                 onPressed: () async {
                                   Navigator.of(context).pop();
                                   await Permission.ignoreBatteryOptimizations
-                                      .request().then((value){
-                                          getPermission();
-                                  });
+                                      .request();
+                                  outerProvider.openSetting(true);
                                 },
                                 child: const Text("Allow", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold))),
                           ],

@@ -11,15 +11,15 @@ class PushNotifications {
             '@mipmap/ic_launcher'); // Your notification icon
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
-    await _notificationPlugin.initialize(initializationSettings);
+    await _notificationPlugin.initialize(initializationSettings); // Initialize notification plugin.
   }
 
   NotificationDetails androidDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'task_channel',
-        'Task Notification',
-        channelDescription: 'Task Alert',
+        'task_channel',  // Channel ID for grouping notifications.
+        'Task Notification', // Channel name.
+        channelDescription: 'Task Alert', // Channel description.
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
@@ -31,34 +31,26 @@ class PushNotifications {
 
   void showNotification({required TodoModel todo}) async {
     await _notificationPlugin.show(
-      todo.id,
-      todo.title,
-      todo.description,
+      todo.id, // Unique ID for notification.
+      todo.title, // Title of the notification.
+      todo.description, // Content of the notification.
       androidDetails(),
     );
   }
 
   Future<void> scheduleNotification(
-      {required bool? show, required int hour}) async {
+      {required bool show, required int hour}) async {
     // Get location and time for 9:00 AM IST
     final location = tz.getLocation('Asia/Kolkata');
     final now = tz.TZDateTime.now(location);
-    tz.TZDateTime scheduledDate =
-        tz.TZDateTime(location, now.year, now.month, now.day, now.hour, (now.minute + 1), now.second);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(location, now.year, now.month,
+        now.day, now.hour, (now.minute + 1), now.second);
     await _notificationPlugin.zonedSchedule(
-        (show == null)
-            ? -1
-            : 1,
-        (show == null)
-            ? "Task Pending"
-            : (show)
-                ? 'Daily Reminder'
-                : 'Organize Today',
-        (show == null)
-            ? "Last day of today pending tasks"
-            : (show)
-                ? 'Check your tasks for today!'
-                : 'Start today fresh. Set new tasks to stay organized!',
+        1, // Unique ID for scheduling.
+        (show) ? 'Daily Reminder' : 'Organize Today',
+        (show)
+            ? 'Check your tasks for today!'
+            : 'Start today fresh. Set new tasks to stay organized!',
         scheduledDate,
         androidDetails(),
         matchDateTimeComponents:
