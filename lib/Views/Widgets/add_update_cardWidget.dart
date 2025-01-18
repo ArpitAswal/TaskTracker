@@ -233,6 +233,7 @@ Widget textFieldWidget(
     textInputAction: (labelText.contains("Title"))
         ? TextInputAction.next
         : TextInputAction.done,
+    textCapitalization: TextCapitalization.sentences,
     maxLength: maxLength,
     decoration: InputDecoration(
       labelText: labelText,

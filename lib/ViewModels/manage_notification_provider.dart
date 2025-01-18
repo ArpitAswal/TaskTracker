@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../main.dart';
 
 class ManageNotificationProvider extends ChangeNotifier {
+  void destroyManagerTask() {
+    Workmanager().cancelAll();
+    Fluttertoast.showToast(
+        msg: "All Periodic Notifications Cancel",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.redAccent.shade400,
+        textColor: Colors.white,
+        fontSize: 14.0);
+  }
 
   void initBackground() async {
     // Initialize background tasks using Workmanager.
@@ -42,6 +53,16 @@ class ManageNotificationProvider extends ChangeNotifier {
           requiresStorageNotLow: null),
       initialDelay: nightDelay(), // Calculate the delay for the first run
     );
+
+    Fluttertoast.showToast(
+      msg: "All Periodic Notifications Set",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 3,
+      backgroundColor: Colors.green.shade400,
+      textColor: Colors.black,
+      fontSize: 14.0,
+    );
   }
 
   Duration morningDelay() {
@@ -56,6 +77,7 @@ class ManageNotificationProvider extends ChangeNotifier {
     }
     return next9AM.difference(now);
   }
+
   Duration nightDelay() {
     // Calculate the time difference to the next 9:00 AM
     final now = DateTime.now();

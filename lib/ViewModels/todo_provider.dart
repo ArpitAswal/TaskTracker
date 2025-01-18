@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../Models/todo_model.dart';
+import 'manage_notification_provider.dart';
 
 class TodoProvider extends ChangeNotifier {
   final Box<TodoModel> _todoBox = Hive.box<TodoModel>('todoBox');
-  final Box<String> _hiveNotPer = Hive.box<String>('notification_permission');
+  final Box<bool> _hiveWorkMng = Hive.box<bool>('workManagerTasks');
+  final notificationProv = ManageNotificationProvider();
   List<TodoModel> _completedTask = <TodoModel>[];
   String _titleError = "";
   String _startError = "";
@@ -13,7 +15,7 @@ class TodoProvider extends ChangeNotifier {
   int _tabIndex = 0;
   int _taskIndex = 0;
   bool isDarkMode = false;
-  bool _navigatingToSettings = false;
+  bool _navigatingToSettings = true;
 
   int get taskIndex => (_taskIndex += 1);
   int get tabIndex => _tabIndex;
@@ -78,12 +80,8 @@ class TodoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String getPermission(){
-    return _hiveNotPer.get('permission') ?? "";
-  }
-
-  void openSetting(bool flag){
-   _navigatingToSettings = true;
+  void openSetting(bool flag) {
+    _navigatingToSettings = flag;
   }
 
   //Let's do CRUD operation
@@ -123,5 +121,21 @@ class TodoProvider extends ChangeNotifier {
     });
     _todoBox.deleteAt(index);
     setCompletedTask();
+  }
+
+  void flagBgTaskInitialize() {
+    bool? isInitialize = _hiveWorkMng.get('workManagerInitialize');
+    if (isInitialize == null || !isInitialize) {
+      notificationProv.initBackground();
+      _hiveWorkMng.put('workManagerInitialize', true);
+    }
+  }
+
+  void cancelWorkManagerTasks() {
+    bool? isInitialize = _hiveWorkMng.get('workManagerInitialize');
+    if (isInitialize != null && isInitialize) {
+      notificationProv.destroyManagerTask();
+      _hiveWorkMng.put('workManagerInitialize', false);
+    }
   }
 }

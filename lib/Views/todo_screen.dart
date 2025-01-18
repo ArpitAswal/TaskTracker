@@ -4,7 +4,6 @@ import 'package:flutter_popup_card/flutter_popup_card.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_task/ViewModels/manage_notification_provider.dart';
 import '../Models/todo_model.dart';
 import '../Service/notification.dart';
 import '../ViewModels/todo_provider.dart';
@@ -25,15 +24,12 @@ class _TaskScreenState extends State<TaskScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabCnt;
   late TodoProvider outerProvider;
-  late ManageNotificationProvider notificationProvider;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     outerProvider = Provider.of<TodoProvider>(context, listen: false);
-    notificationProvider =
-        Provider.of<ManageNotificationProvider>(context, listen: false);
     _tabCnt = TabController(length: 2, vsync: this);
     _tabCnt.addListener(() {
       if (_tabCnt.index == 0) {
@@ -52,21 +48,26 @@ class _TaskScreenState extends State<TaskScreen>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && outerProvider.navigatingToSettings) {
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
       // The app has returned from the settings screen.
-      getPermission(); // Recheck the permission status here.
-      outerProvider.openSetting(false);
+      Future.delayed(const Duration(seconds: 3), () async {
+        if (outerProvider.navigatingToSettings) {
+          await Permission.ignoreBatteryOptimizations.request();
+        }
+        getPermission();
+      });
     }
   }
 
   Future<void> getPermission() async {
     var status = await Permission.ignoreBatteryOptimizations.status;
-
     if (status.isGranted) {
       // User has granted permission, proceed with app logic
-      notificationProvider.initBackground();
-    } else if ((status.isDenied || status.isPermanentlyDenied)) {
+      outerProvider.openSetting(false);
+      outerProvider.flagBgTaskInitialize();
+    } else if ((status.isDenied || status.isPermanentlyDenied) &&
+        outerProvider.navigatingToSettings) {
       // Handle case where user denied permission
       showPopupCard(
           context: context,
@@ -78,8 +79,8 @@ class _TaskScreenState extends State<TaskScreen>
                 shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(24.0))),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.18,
-                  width: MediaQuery.of(context).size.width * 0.82,
+                    height: MediaQuery.of(context).size.height * 0.18,
+                    width: MediaQuery.of(context).size.width * 0.82,
                     margin: const EdgeInsets.symmetric(
                       horizontal: 16.0,
                     ).copyWith(top: 12.0),
@@ -89,22 +90,21 @@ class _TaskScreenState extends State<TaskScreen>
                             "If you wish to get schedule notification daily you have to turn off the battery optimisation."),
                         const SizedBox(height: 4.0),
                         RichText(
-                          text: const TextSpan(
-                              text: "",
-                              children: <InlineSpan>[
-                                TextSpan(
-                          text: "Note: ",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
+                          text: const TextSpan(text: "", children: <InlineSpan>[
+                            TextSpan(
+                                text: "Note: ",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
                                 )),
-                                TextSpan(
-                                  text:
-                                  " After denying the permission, you have to turn off the battery optimisation manually from settings to get the schedule notification.",
-                                    style: TextStyle(
-                                      color: Colors.black45,))
-                              ]),
+                            TextSpan(
+                                text:
+                                    " After denying the permission, you have to turn off the battery optimisation manually from settings to get the schedule notification.",
+                                style: TextStyle(
+                                  color: Colors.black45,
+                                ))
+                          ]),
                         ),
                         const SizedBox(height: 4.0),
                         Row(
@@ -113,24 +113,36 @@ class _TaskScreenState extends State<TaskScreen>
                             TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
+                                  outerProvider.openSetting(false);
+                                  outerProvider.cancelWorkManagerTasks();
                                 },
-                                child: const Text("Deny", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),)),
+                                child: const Text(
+                                  "Deny",
+                                  style: TextStyle(
+                                      color: Colors.indigo,
+                                      fontWeight: FontWeight.bold),
+                                )),
                             const SizedBox(
                               width: 6.0,
                             ),
                             TextButton(
                                 onPressed: () async {
                                   Navigator.of(context).pop();
+                                  outerProvider.openSetting(true);
                                   await Permission.ignoreBatteryOptimizations
                                       .request();
-                                  outerProvider.openSetting(true);
                                 },
-                                child: const Text("Allow", style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold))),
+                                child: const Text("Allow",
+                                    style: TextStyle(
+                                        color: Colors.indigo,
+                                        fontWeight: FontWeight.bold))),
                           ],
                         ),
                       ],
                     )));
           });
+    } else {
+      outerProvider.cancelWorkManagerTasks();
     }
   }
 
