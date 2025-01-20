@@ -51,7 +51,7 @@ Future<void> morningHive() async {
       TodoModel>(); // Access the Hive box for todos.
   if (box.values.isEmpty) {
     // If there are no tasks, schedule a notification to start new tasks.
-    pushNot.scheduleNotification(id: 0, show: false);
+    pushNot.scheduleNotification(id: 0, show: true);
   } else {
     String date = DateFormat("dd.MM.yy")
         .format(DateTime.now()); // Get today's date in specific format.
