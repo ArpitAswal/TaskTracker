@@ -57,9 +57,9 @@ Future<void> morningHive() async {
         .format(DateTime.now()); // Get today's date in specific format.
     // Check if any task is incomplete
     bool hasPendingTasks = box.values.any((task) {
-      return !task.isCompleted &&
-          int.parse(date.split(".").first) <
-              int.parse(task.startDate.split(".").first);
+      return int.parse(date.split(".").first) >=
+              int.parse(task.startDate.split(".").first) &&
+          !task.isCompleted;
     });
     // Schedule notification based on whether tasks are pending.
     pushNot.scheduleNotification(id: 0, show: hasPendingTasks);
@@ -75,9 +75,8 @@ Future<void> nightHive() async {
     String date = DateFormat("dd.MM.yy")
         .format(DateTime.now()); // Get today's date in specific format.
     bool hasPendingTasks = box.values.any((task) {
-      return !task.isCompleted &&
-          int.parse(date.split(".").first) >=
-              int.parse(task.endDate.split(".").first);
+      return int.parse(date.split(".").first) >=
+              int.parse(task.endDate.split(".").first) && !task.isCompleted;
     });
     // Show a notification about pending tasks.
     pushNot.scheduleNotification(id: 1, show: hasPendingTasks);

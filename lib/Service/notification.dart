@@ -52,13 +52,13 @@ class PushNotifications {
           id, // Unique ID for scheduling.
           (id == 0)
               ? (show)
-                  ? 'Organize Today'
-                  : 'Daily Reminder'
+              ? 'Daily Reminder'
+              : 'Organize Today'
               : "Task Pending",
           (id == 0)
               ? (show)
-                  ? 'Start today fresh. Set new tasks to stay organized!'
-                  : 'Check your tasks for today!'
+              ? 'Check your tasks for today!'
+              : 'Start today fresh. Set new tasks to stay organized!'
               : 'Last day of today pending tasks',
           scheduledDate,
           androidDetails(),
