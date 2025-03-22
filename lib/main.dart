@@ -1,36 +1,48 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_task/Models/todo_model.dart';
-import 'package:todo_task/Service/notification.dart';
-import 'package:todo_task/ViewModels/manage_notification_provider.dart';
+import 'package:todo_task/Service/push_notification_service.dart';
 import 'package:todo_task/ViewModels/todo_provider.dart';
+import 'package:todo_task/ViewModels/auth_provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:workmanager/workmanager.dart';
 
 import 'Adapters/todo_adapter.dart';
-import 'Views/todo_screen.dart';
-
-const morningNotification = "MorningNotification";
-const nightNotification = "NightNotification";
-final pushNot = PushNotifications();
+import 'Service/initialization_service.dart';
+import 'Utils/colors/app_colors.dart';
+import 'Utils/constants/app_constants.dart';
+import 'ViewModels/setting_provider.dart';
+import 'Views/Widgets/state_handler.dart';
+import 'firebase_options.dart';
 
 // Callback function that runs in the background.
 // Workmanager uses this to execute tasks based on their unique task name.
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case morningNotification:
-        await morningHive(); // Execute morning-related tasks
-        break;
-      case nightNotification:
-        await nightHive(); // Execute night-related tasks
-        break;
+    try {
+      // Initialize Firebase in the background isolate
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      switch (task) {
+        case WorkManagerConstants.morningTaskName:
+          await morningHive(); // Execute morning-related tasks
+          break;
+        case WorkManagerConstants.nightTaskName:
+          await nightHive(); // Execute night-related tasks
+          break;
+      }
+      return Future.value(true); // Indicates successful task execution.
+    } catch (e) {
+      return Future.value(false); // Indicates failed task execution.
     }
-    return Future.value(true); // Indicates successful task execution.
   });
 }
 
@@ -43,23 +55,26 @@ Future<Box<TodoModel>> initializeHiveForIsolate<T>() async {
   // Register the adapter
   Hive.registerAdapter(TodoAdapter());
   // Open a box (database)
-  return await Hive.openBox<TodoModel>('todoBox');
+  return await Hive.openBox<TodoModel>(HiveDatabaseConstants.todoHive);
 }
 
 Future<void> morningHive() async {
+  PushNotificationsService pushNot = PushNotificationsService();
+
+  pushNot.initLocalNotifications();
+
   final box = await initializeHiveForIsolate<
       TodoModel>(); // Access the Hive box for todos.
   if (box.values.isEmpty) {
     // If there are no tasks, schedule a notification to start new tasks.
     pushNot.scheduleNotification(id: 0, show: false);
   } else {
-    String date = DateFormat("dd.MM.yy")
-        .format(DateTime.now()); // Get today's date in specific format.
+    final now = DateTime.now();
     // Check if any task is incomplete
     bool hasPendingTasks = box.values.any((task) {
-      return !task.isCompleted &&
-          int.parse(date.split(".").first) <
-              int.parse(task.startDate.split(".").first);
+      final startDate = task.startDate;
+      return (now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) &&
+          !task.isCompleted;
     });
     // Schedule notification based on whether tasks are pending.
     pushNot.scheduleNotification(id: 0, show: hasPendingTasks);
@@ -68,16 +83,18 @@ Future<void> morningHive() async {
 }
 
 Future<void> nightHive() async {
+  PushNotificationsService pushNot = PushNotificationsService();
+  pushNot.initLocalNotifications();
+
   final box = await initializeHiveForIsolate<
       TodoModel>(); // Access the Hive box for todos.
   if (box.values.isNotEmpty) {
     // Check if any task is incomplete
-    String date = DateFormat("dd.MM.yy")
-        .format(DateTime.now()); // Get today's date in specific format.
+    final now = DateTime.now();
     bool hasPendingTasks = box.values.any((task) {
-      return !task.isCompleted &&
-          int.parse(date.split(".").first) >=
-              int.parse(task.endDate.split(".").first);
+      final endDate = task.endDate;
+      return (now.isAfter(endDate) || now.isAtSameMomentAs(endDate)) &&
+          !task.isCompleted;
     });
     // Show a notification about pending tasks.
     pushNot.scheduleNotification(id: 1, show: hasPendingTasks);
@@ -85,25 +102,44 @@ Future<void> nightHive() async {
   await box.close();
 }
 
-void main() async {
-  WidgetsFlutterBinding
-      .ensureInitialized(); // It is used so that void main function can be initiated after successfully initialization of data
-  pushNot.init(); // Initialize the notification system.
-  tz.initializeTimeZones(); // Initialize timezone data.
-  await Hive.initFlutter(); // Initialize Hive
-  Hive.registerAdapter(TodoAdapter()); // Register the adapter
+// Background Notification, when the app is not currently running on device but it is not terminated yet.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  /*
+  If you're going to use other Firebase services in the background, such as Firestore, make sure you call `initializeApp` before using other Firebase services.
+  await Firebase.initializeApp();
+   */
+  debugPrint("🔥 Background message received: ${message.notification?.title}");
+}
 
-  // Open a box (database)
-  await Hive.openBox<TodoModel>('todoBox');
-  await Hive.openBox<bool>('workManagerTasks');
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase first
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Set up background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Initialize essential services
+  await InitializationService().initializeEssentials();
+
+  tz.initializeTimeZones();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   runApp(MultiProvider(
-    // Start the app with state management using providers
     providers: [
+      ChangeNotifierProvider(
+        create: (BuildContext context) => AuthenticateProvider(),
+      ),
       ChangeNotifierProvider(
         create: (BuildContext context) => TodoProvider(),
       ),
       ChangeNotifierProvider(
-          create: (BuildContext context) => ManageNotificationProvider())
+        create: (BuildContext context) => SettingsProvider(),
+      ),
     ],
     child: const MyApp(),
   ));
@@ -115,31 +151,59 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<TodoProvider>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Task Tracker',
+      title: AppConstants.appTitle,
       theme: ThemeData(
-        primaryColor: provider.isDarkMode ? Colors.white : Colors.indigo,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        primaryColor: AppColors.blackColor,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.textColor,
+          primary: AppColors.blueColor,
+          secondary: AppColors.whiteColor,
+          tertiary: AppColors.textColor,
+        ),
         appBarTheme: AppBarTheme(
-            color: provider.isDarkMode ? Colors.black : Colors.white),
-        scaffoldBackgroundColor:
-            provider.isDarkMode ? Colors.black : Colors.white,
+            centerTitle: true,
+            backgroundColor: AppColors.blueColor,
+            foregroundColor: AppColors.whiteColor,
+            titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.whiteColor, fontWeight: FontWeight.bold)),
+        scaffoldBackgroundColor: AppColors.whiteColor,
       ),
-      darkTheme: ThemeData.dark(),
-      themeMode: provider.currentTheme,
+      darkTheme: ThemeData(
+        scaffoldBackgroundColor: AppColors.blackColor,
+        primaryColor: AppColors.whiteColor,
+        appBarTheme: AppBarTheme(
+            centerTitle: true,
+            backgroundColor: AppColors.indigoColor,
+            foregroundColor: AppColors.whiteColor,
+            titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.whiteColor, fontWeight: FontWeight.bold)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.textColor,
+          primary: AppColors.indigoColor,
+          secondary: AppColors.whiteColor,
+          tertiary: AppColors.textColor,
+        ),
+      ),
+      themeMode: context.watch<SettingsProvider>().currentTheme,
       home: AnimatedSplashScreen(
           centered: true,
-          duration: 6000,
-          splash: Lottie.asset('assets/Animation - 1723742573953.json',
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width * .5,
-              fit: BoxFit.cover,
-              repeat: true,
-              reverse: true),
-          nextScreen: const TaskScreen(title: 'Task Screen'),
-          splashTransition: SplashTransition.fadeTransition,
-          curve: Curves.easeInOut,
+          //duration: 3500, // Reduced to better match Lottie animation
+          splash: Lottie.asset(
+            'assets/lottie/splash.json',
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width * .5,
+            fit: BoxFit.cover,
+            repeat: true,
+            reverse: true,
+            options: LottieOptions(enableMergePaths: true),
+          ),
+          nextScreen: const AuthStateHandler(),
+          animationDuration: const Duration(seconds: 2),
+          splashTransition: SplashTransition.scaleTransition,
+          curve: Curves.linear,
           backgroundColor: Colors.white),
     );
   }

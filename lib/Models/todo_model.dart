@@ -1,11 +1,11 @@
-
 class TodoModel {
   String title;
   String description;
   bool isCompleted;
   int id;
-  String startDate;
-  String endDate;
+  DateTime startDate;
+  DateTime endDate;
+  DateTime createdAtTime;
 
   TodoModel({
     required this.title,
@@ -14,5 +14,6 @@ class TodoModel {
     required this.id,
     required this.startDate,
     required this.endDate,
+    required this.createdAtTime,
   });
 }

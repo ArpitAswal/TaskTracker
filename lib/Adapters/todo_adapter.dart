@@ -1,7 +1,7 @@
-/*
-To store objects in Hive, you need to register a TypeAdapter. This is done by generating a class that extends
+/* To store objects in Hive, you need to register a TypeAdapter. This is done by generating a class that extends
 TypeAdapter<T>. Let's create and register the adapter:
  */
+
 import 'package:hive/hive.dart';
 
 import '../Models/todo_model.dart';
@@ -18,8 +18,9 @@ class TodoAdapter extends TypeAdapter<TodoModel> {
       description: reader.readString(),
       isCompleted: reader.readBool(),
       id: reader.readInt(),
-      startDate: reader.readString(),
-      endDate: reader.readString(),
+      startDate: DateTime.parse(reader.readString()),
+      endDate: DateTime.parse(reader.readString()),
+      createdAtTime: DateTime.parse(reader.readString()),
     );
   }
 
@@ -30,7 +31,8 @@ class TodoAdapter extends TypeAdapter<TodoModel> {
     writer.writeString(obj.description);
     writer.writeBool(obj.isCompleted);
     writer.writeInt(obj.id);
-    writer.writeString(obj.startDate);
-    writer.writeString(obj.endDate);
+    writer.writeString(obj.startDate.toString());
+    writer.writeString(obj.endDate.toString());
+    writer.writeString(obj.createdAtTime.toString());
   }
 }
