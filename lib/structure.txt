@@ -1,0 +1,32 @@
+lib/
+├── NetworkRequests/
+│   ├── node_server_repository.dart
+├── HiveAdapters/
+│   ├── authenticate_adapter.dart
+│   └── todo_adapter.dart
+├── Models/
+│   ├── auth_model.dart
+│   └── todo_model.dart
+├── Views/
+│   ├── Screens/
+│   │   ├── login_screen.dart
+│   │   └── task_screen.dart
+│   ├── Widgets/
+│   │   ├── custom_buttons.dart
+│   │   ├── task_cards.dart
+│   │   └── form_fields.dart
+├── ViewModels/
+│   ├── auth_provider.dart
+│   ├── todo_provider.dart
+│   └── setting_provider.dart
+├── Services/
+│   ├── initialization_service.dart
+│   ├── push_notification_service.dart
+│   └── manage_notification_service.dart
+├── Utils/
+│   ├── dynamic_messages/
+│   ├── colors/
+│   ├── clipper/
+│   ├── constants/
+│   └── extensions/
+└── main.dart

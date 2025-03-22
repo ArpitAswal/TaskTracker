@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:workmanager/workmanager.dart';
 
+import '../Utils/constants/app_constants.dart';
 import '../main.dart';
 
-class ManageNotificationProvider extends ChangeNotifier {
+class ManageNotificationService {
   void destroyManagerTask() {
     Workmanager().cancelAll();
     Fluttertoast.showToast(
-        msg: "All Periodic Notifications Cancel",
+        msg: WorkManagerConstants.workManagerCancel,
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 3,
@@ -26,8 +27,8 @@ class ManageNotificationProvider extends ChangeNotifier {
 
     // Register a daily morning task.
     Workmanager().registerPeriodicTask(
-      "MorningTaskCheck",
-      morningNotification,
+      WorkManagerConstants.morningUniqueName,
+      WorkManagerConstants.morningTaskName,
       frequency: const Duration(hours: 24), // Runs daily
       constraints: Constraints(
           // Consider adding networkType and requiresCharging constraints if needed
@@ -41,8 +42,8 @@ class ManageNotificationProvider extends ChangeNotifier {
 
     // Register a daily night task.
     Workmanager().registerPeriodicTask(
-      "NightTaskCheck",
-      nightNotification,
+      WorkManagerConstants.nightUniqueName,
+      WorkManagerConstants.nightTaskName,
       frequency: const Duration(hours: 24), // Runs daily
       constraints: Constraints(
           // Consider adding networkType and requiresCharging constraints if needed
@@ -55,12 +56,12 @@ class ManageNotificationProvider extends ChangeNotifier {
     );
 
     Fluttertoast.showToast(
-      msg: "All Periodic Notifications Set",
+      msg: WorkManagerConstants.workManagerInitialize,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 3,
       backgroundColor: Colors.green.shade400,
-      textColor: Colors.black,
+      textColor: Colors.white,
       fontSize: 14.0,
     );
   }
