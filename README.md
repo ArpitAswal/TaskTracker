@@ -1,7 +1,7 @@
 ## App Logo
 Click on a logo to download the latest version of the app apk file:
 
-<a href="https://github.com/ArpitAswal/TaskTracker/releases/download/v2.0.0/TaskTracker.apk"> ![ic_launcher](https://github.com/user-attachments/assets/7ae48f6f-cef0-4588-b2d5-89243e7cf083)</a>
+<a href="https://github.com/ArpitAswal/TaskTracker/releases/download/v3.0.0/TaskTracker.apk"> ![ic_launcher](https://github.com/user-attachments/assets/7ae48f6f-cef0-4588-b2d5-89243e7cf083)</a>
 
 # Project Title: Task Tracker
 
@@ -139,6 +139,9 @@ https://github.com/user-attachments/assets/ead9388c-5a0c-44fe-93cc-122d4a3f3185
 - Scheduled notifications may occasionally be delayed due to OS background processing.
 
 - Ensure all necessary dependencies are added to pubspec.yaml and required permissions are granted in AndroidManifest.xml.
+
+## New Update
+- From v3.0.0 only single periodic task is schedule for default frequency 4 hours. User can also change the frequency duration of Task Remainder Notification from the Profile Screen.
 
 ## 🔥 Challenges
 #### Background Task Management

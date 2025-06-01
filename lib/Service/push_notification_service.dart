@@ -77,11 +77,12 @@ class PushNotificationsService {
   }
 
   Future<void> showLocalTaskNotification({required TodoModel todo}) async {
+    AndroidNotificationChannel channel = makeChannel(null);
     await _notificationPlugin.show(
       todo.id, // Unique ID for notification.
       todo.title, // Title of the notification.
       todo.description, // Content of the notification.
-      notificationDetails(),
+      notificationDetails(channel: channel),
     );
   }
 
@@ -117,34 +118,57 @@ class PushNotificationsService {
     }
   }
 
-  Future<void> scheduleNotification(
-      {required bool show, required int id}) async {
+  Future<void> scheduleNotification() async {
     final location = tz.getLocation('Asia/Kolkata');
     final now = tz.TZDateTime.now(location);
     tz.TZDateTime scheduledDate = tz.TZDateTime(location, now.year, now.month,
         now.day, now.hour, (now.minute + 1), now.second);
-    if (id == 1 && show == false) {
-      _notificationPlugin.cancel(1);
-    } else {
-      await _notificationPlugin.zonedSchedule(
-          id, // Unique ID for scheduling.
-          (id == 0)
-              ? (show)
-                  ? NotificationConstants.dailyTitle
-                  : NotificationConstants.newFreshTitle
-              : NotificationConstants.pendingTitle,
-          (id == 0)
-              ? (show)
-                  ? NotificationConstants.dailyBody
-                  : NotificationConstants.newFreshBody
-              : NotificationConstants.pendingBody,
-          scheduledDate,
-          notificationDetails(),
-          matchDateTimeComponents:
-              DateTimeComponents.time, // Repeat daily at this time
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
-    }
+    // if (id == 1 && show == false) {
+    //   _notificationPlugin.cancel(1);
+    // } else {
+    //   debugPrint("schedule: ${scheduledDate.timeZone}");
+    //   await _notificationPlugin.zonedSchedule(
+    //       id, // Unique ID for scheduling.
+    //       (id == 0)
+    //           ? (show)
+    //               ? NotificationConstants.dailyTitle
+    //               : NotificationConstants.newFreshTitle
+    //           : NotificationConstants.pendingTitle,
+    //       (id == 0)
+    //           ? (show)
+    //               ? NotificationConstants.dailyBody
+    //               : NotificationConstants.newFreshBody
+    //           : NotificationConstants.pendingBody,
+    //       scheduledDate,
+    //       notificationDetails(),
+    //       matchDateTimeComponents:
+    //           DateTimeComponents.time, // Repeat daily at this time
+    //       uiLocalNotificationDateInterpretation:
+    //           UILocalNotificationDateInterpretation.absoluteTime,
+    //       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
+    // }
+    await _notificationPlugin.zonedSchedule(
+        scheduledDate.timeZone.hashCode, // Unique ID for scheduling.
+        NotificationConstants.newFreshTitle,
+        NotificationConstants.newFreshBody,
+        scheduledDate,
+        notificationDetails(),
+        matchDateTimeComponents:
+            DateTimeComponents.time, // Repeat daily at this time
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
+  }
+
+  showCustomNotification(
+      {required int id, required String title, required String body}) async {
+    AndroidNotificationChannel channel = makeChannel(null);
+
+    await _notificationPlugin.show(
+      id, // Unique ID for the notification
+      title.toString(),
+      body.toString(),
+      notificationDetails(channel: channel),
+    );
   }
 }

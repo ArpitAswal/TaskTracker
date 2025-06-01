@@ -14,6 +14,7 @@ class TodoProvider extends ChangeNotifier {
   final Box<TodoModel> _todoBox = Hive.box<TodoModel>('todoBox');
   final notificationService = PushNotificationsService();
   final initService = InitializationService();
+  late ValueNotifier<int> _drawerIndex;
   late SettingsProvider _setProv;
   late DateTime _taskTime;
   late DateTime _taskStartDate;
@@ -33,11 +34,13 @@ class TodoProvider extends ChangeNotifier {
   DateTime get taskTime => _taskTime;
   DateTime get taskStartDate => _taskStartDate;
   DateTime get taskEndDate => _taskEndDate;
+  ValueNotifier<int> get drawerIndex => _drawerIndex;
 
   // Initialize the last ID by checking the existing tasks
   TodoProvider() {
     setCompletedTask();
     _initializeLastId();
+    _drawerIndex = ValueNotifier(0);
   }
 
   void _initializeLastId() {

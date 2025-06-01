@@ -25,6 +25,7 @@ class AuthenticateProvider extends ChangeNotifier {
   bool _adminFocus = false;
   bool _notOnboarding = true;
   String _selectedRole = "Select";
+  int _selectedHour = 1;
 
   String? _error;
   UpdateSuccess userInfo = UpdateSuccess.initial;
@@ -38,6 +39,7 @@ class AuthenticateProvider extends ChangeNotifier {
   bool get adminFocus => _adminFocus;
   bool get notOnboarding => _notOnboarding;
   String get selectedRole => _selectedRole;
+  int get selectedHour => _selectedHour;
   String? get error => _error;
   AuthenticateModel get authUser => _authUser;
 
@@ -83,6 +85,12 @@ class AuthenticateProvider extends ChangeNotifier {
 
   void setOnboarding(bool value) {
     _notOnboarding = value;
+    notifyListeners();
+  }
+
+  void setSelectedHour(int value) {
+    _selectedHour = value;
+    notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
@@ -118,7 +126,8 @@ class AuthenticateProvider extends ChangeNotifier {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
       setOnboarding(false);
-      saveUserPreference(userCred: userCredential, email, password, selectedRole);
+      saveUserPreference(
+          userCred: userCredential, email, password, selectedRole);
       changeRole("Select");
       return true;
     } catch (e) {

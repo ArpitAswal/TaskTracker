@@ -7,6 +7,7 @@ import 'package:todo_task/ViewModels/auth_provider.dart';
 import 'package:todo_task/ViewModels/setting_provider.dart';
 
 import '../../Models/auth_model.dart';
+import '../../Service/manage_notification_service.dart';
 import '../../Utils/colors/app_colors.dart';
 import '../../ViewModels/todo_provider.dart';
 import '../Widgets/fill_fields.dart';
@@ -24,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
   late AuthenticateProvider provider;
 
   @override
@@ -53,8 +55,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildUserInfoFromFirestore(),
                 SizedBox(height: size.height * 0.025),
                 _buildStaticWidget(),
+                delayHourSelector(
+                  context: context,
+                  onHourSelected: (int hours) async {
+                    await ManageNotificationService()
+                        .initBackground(delayInHours: hours);
+                  },
+                )
               ],
             )));
+  }
+
+  Widget delayHourSelector(
+      {required Function(int hours) onHourSelected,
+      required BuildContext context}) {
+    return SettingsCard.infoCard(
+      context,
+      tap: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return Dialog(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                elevation: 8.0,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width / 2,
+                  child: DropdownButton<int>(
+                    value: provider.selectedHour,
+                    icon: const Icon(Icons.more_time_outlined),
+                    underline: null,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 6.0),
+                    isExpanded: true,
+                    items: List.generate(12, (index) => index + 1)
+                        .map((hour) => DropdownMenuItem<int>(
+                              value: hour,
+                              child: Text('$hour hour${hour > 1 ? 's' : ''}'),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        provider.setSelectedHour(value);
+                        onHourSelected(value);
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                ));
+          },
+        );
+      },
+      icon: Icons.timer,
+      label: "Periodic Notification Timer",
+      border: context.read<SettingsProvider>().isDarkMode,
+    );
   }
 
   Widget _buildUserInfoFromFirestore() {
@@ -180,7 +237,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontWeight: FontWeight.bold)),
                           SizedBox(height: size.height * 0.01),
                           ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                context.read<TodoProvider>().drawerIndex.value = 0;
+                                context.read<TodoProvider>().setIndex(1);
+                              },
                               style: Theme.of(context)
                                   .primaryElevatedButtonStyle(context,
                                       minWidth: 0.3, borderRadius: 8.0),

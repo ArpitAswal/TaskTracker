@@ -31,13 +31,16 @@ void callbackDispatcher() {
         options: DefaultFirebaseOptions.currentPlatform,
       );
 
-      switch (task) {
-        case WorkManagerConstants.morningTaskName:
-          await morningHive(); // Execute morning-related tasks
-          break;
-        case WorkManagerConstants.nightTaskName:
-          await nightHive(); // Execute night-related tasks
-          break;
+      // switch (task) {
+      //   case WorkManagerConstants.morningTaskName:
+      //     await morningHive(); // Execute morning-related tasks
+      //     break;
+      //   case WorkManagerConstants.nightTaskName:
+      //     await nightHive(); // Execute night-related tasks
+      //     break;
+      // }
+      if (task == WorkManagerConstants.periodicTaskName) {
+        await handlePeriodicTask();
       }
       return Future.value(true); // Indicates successful task execution.
     } catch (e) {
@@ -58,51 +61,78 @@ Future<Box<TodoModel>> initializeHiveForIsolate<T>() async {
   return await Hive.openBox<TodoModel>(HiveDatabaseConstants.todoHive);
 }
 
-Future<void> morningHive() async {
-  PushNotificationsService pushNot = PushNotificationsService();
-
-  pushNot.initLocalNotifications();
-
-  final box = await initializeHiveForIsolate<
-      TodoModel>(); // Access the Hive box for todos.
-  if (box.values.isEmpty) {
-    // If there are no tasks, schedule a notification to start new tasks.
-    pushNot.scheduleNotification(id: 0, show: false);
-  } else {
-    final now = DateTime.now();
-    // Check if any task is incomplete
-    bool hasPendingTasks = box.values.any((task) {
-      final startDate = task.startDate;
-      return (now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) &&
-          !task.isCompleted;
-    });
-    // Schedule notification based on whether tasks are pending.
-    pushNot.scheduleNotification(id: 0, show: hasPendingTasks);
-  }
-  await box.close();
-}
-
-Future<void> nightHive() async {
-  PushNotificationsService pushNot = PushNotificationsService();
-  pushNot.initLocalNotifications();
-
-  final box = await initializeHiveForIsolate<
-      TodoModel>(); // Access the Hive box for todos.
-  if (box.values.isNotEmpty) {
-    // Check if any task is incomplete
-    final now = DateTime.now();
-    bool hasPendingTasks = box.values.any((task) {
-      final endDate = task.endDate;
-      return (now.isAfter(endDate) || now.isAtSameMomentAs(endDate)) &&
-          !task.isCompleted;
-    });
-    // Show a notification about pending tasks.
-    pushNot.scheduleNotification(id: 1, show: hasPendingTasks);
-  }
-  await box.close();
-}
+// Future<void> morningHive() async {
+//   PushNotificationsService pushNot = PushNotificationsService();
+//
+//   pushNot.initLocalNotifications();
+//
+//   final box = await initializeHiveForIsolate<
+//       TodoModel>(); // Access the Hive box for todos.
+//   if (box.values.isEmpty) {
+//     // If there are no tasks, schedule a notification to start new tasks.
+//     pushNot.scheduleNotification(id: 0, show: false);
+//   } else {
+//     final now = DateTime.now();
+//     // Check if any task is incomplete
+//     bool hasPendingTasks = box.values.any((task) {
+//       final startDate = task.startDate;
+//       return (now.isAfter(startDate) || now.isAtSameMomentAs(startDate)) &&
+//           !task.isCompleted;
+//     });
+//     // Schedule notification based on whether tasks are pending.
+//     pushNot.scheduleNotification(id: 0, show: hasPendingTasks);
+//   }
+//   await box.close();
+// }
+//
+// Future<void> nightHive() async {
+//   PushNotificationsService pushNot = PushNotificationsService();
+//   pushNot.initLocalNotifications();
+//
+//   final box = await initializeHiveForIsolate<
+//       TodoModel>(); // Access the Hive box for todos.
+//   if (box.values.isNotEmpty) {
+//     // Check if any task is incomplete
+//     final now = DateTime.now();
+//     bool hasPendingTasks = box.values.any((task) {
+//       final endDate = task.endDate;
+//       return (now.isAfter(endDate) || now.isAtSameMomentAs(endDate)) &&
+//           !task.isCompleted;
+//     });
+//     // Show a notification about pending tasks.
+//     pushNot.scheduleNotification(id: 1, show: hasPendingTasks);
+//   }
+//   await box.close();
+// }
 
 // Background Notification, when the app is not currently running on device but it is not terminated yet.
+
+Future<void> handlePeriodicTask() async {
+  PushNotificationsService pushNot = PushNotificationsService();
+  pushNot.initLocalNotifications();
+
+  final box = await initializeHiveForIsolate<
+      TodoModel>(); // Access the Hive box for todos.
+  final now = DateTime.now();
+
+  final pendingTasks = box.values.where((task) {
+    return task.endDate.isBefore(now) && !task.isCompleted;
+  }).toList();
+
+  if (pendingTasks.isEmpty) {
+    pushNot.scheduleNotification();
+  } else {
+    for (var task in pendingTasks) {
+      await pushNot.showCustomNotification(
+        id: task.id,
+        title: task.title,
+        body: task.description,
+      );
+    }
+  }
+  await box.close();
+}
+
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   /*

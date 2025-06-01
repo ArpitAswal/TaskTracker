@@ -24,7 +24,6 @@ class _TaskScreenState extends State<TaskScreen>
   final GlobalKey<SliderDrawerState> _dKey = GlobalKey<SliderDrawerState>();
   late TabController _tabCnt;
   late TodoProvider _outerProvider;
-  late ValueNotifier<int> _selectedIndex;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -35,7 +34,6 @@ class _TaskScreenState extends State<TaskScreen>
     WidgetsBinding.instance.addObserver(this);
     _tabCnt = TabController(length: 2, vsync: this);
     _outerProvider = context.read<TodoProvider>();
-    _selectedIndex = ValueNotifier(0);
     _fadeController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnimation =
@@ -65,7 +63,6 @@ class _TaskScreenState extends State<TaskScreen>
     WidgetsBinding.instance.removeObserver(this);
     _tabCnt.dispose();
     _fadeController.dispose();
-    _selectedIndex.dispose();
     super.dispose();
   }
 
@@ -102,7 +99,7 @@ class _TaskScreenState extends State<TaskScreen>
       resizeToAvoidBottomInset: false,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ValueListenableBuilder<int>(
-        valueListenable: _selectedIndex,
+        valueListenable: _outerProvider.drawerIndex,
         builder: (context, index, child){
           if(index == 0){
             return PopupItemLauncher(
@@ -147,7 +144,7 @@ class _TaskScreenState extends State<TaskScreen>
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Center(
               child: ValueListenableBuilder(
-            valueListenable: _selectedIndex,
+            valueListenable: _outerProvider.drawerIndex,
             builder: (context, index, child) {
               return FadeTransition(
                   opacity: _fadeAnimation,
@@ -162,12 +159,12 @@ class _TaskScreenState extends State<TaskScreen>
         )),
         slider: MySlider(
           onItemSelected: (index) {
-            _selectedIndex.value = index;
+            _outerProvider.drawerIndex.value = index;
             _dKey.currentState!.closeSlider();
           },
         ),
         child: ValueListenableBuilder<int>(
-          valueListenable: _selectedIndex,
+          valueListenable: _outerProvider.drawerIndex,
           builder: (context, index, child) {
             return FadeTransition(
                 opacity: _fadeAnimation, child: _getScreen(index));

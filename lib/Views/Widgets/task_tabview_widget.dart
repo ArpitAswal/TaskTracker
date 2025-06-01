@@ -22,6 +22,7 @@ class TaskTabView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Selector<TodoProvider, int>(
             builder: (BuildContext context, int value, Widget? child) {
+              tabController.index = value;
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [

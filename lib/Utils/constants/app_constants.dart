@@ -8,11 +8,14 @@ class FirestoreConstants {
 
 class WorkManagerConstants {
   static const String morningTaskName = 'TaskTracker_MorningRemainder';
+  static const String periodicTaskName = 'TaskTracker_PeriodicRemainder';
   static const String morningUniqueName = 'TaskTracker_MorningTaskCheck';
+  static const String periodicUniqueName = 'TaskTracker_PeriodicTaskCheck';
   static const String nightTaskName = 'TaskTracker_NightRemainder';
   static const String nightUniqueName = 'TaskTracker_NightTaskCheck';
-  static const String workManagerCancel = 'All Periodic Notifications Cancel';
-  static const String workManagerInitialize = 'All Periodic Notifications Set';
+  static const String workManagerCancel =
+      'Previous Periodic Notifications Cancel';
+  static const String workManagerInitialize = 'New Periodic Notifications Set';
 }
 
 class HiveDatabaseConstants {
