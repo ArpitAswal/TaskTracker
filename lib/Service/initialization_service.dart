@@ -35,10 +35,12 @@ class InitializationService {
     Hive.registerAdapter(TodoAdapter());
     Hive.registerAdapter(AuthenticateAdapter());
     await Hive.openBox<TodoModel>(HiveDatabaseConstants.todoHive);
+    // await Hive.openBox<TodoModel>(HiveDatabaseConstants.specificTodoHive);
     await Hive.openBox<bool>(HiveDatabaseConstants.managerHive);
     await Hive.openBox<bool>(HiveDatabaseConstants.permissionHive);
     await Hive.openBox<AuthenticateModel>(HiveDatabaseConstants.authHive);
     await Hive.openBox<bool>(HiveDatabaseConstants.themeHive);
+    await Hive.openBox<int>(HiveDatabaseConstants.managerFrequency);
 
     // Initialize local notifications (basic setup only)
     _pushNotifications.initLocalNotifications();
@@ -79,6 +81,13 @@ class InitializationService {
     bool? isInitialize = hiveBox.get(HiveDatabaseConstants.managerInitialize);
     if (isInitialize == null || !isInitialize) {
       _notProv.initBackground();
+      Box<TodoModel> taskList =
+          Hive.box<TodoModel>(HiveDatabaseConstants.todoHive);
+      for (var task in taskList.values.toList()) {
+        if (task.isSpecificTimeRemainder) {
+          _notProv.specificRemainderTask(task.reminderHour!);
+        }
+      }
       hiveBox.put(HiveDatabaseConstants.managerInitialize, true);
     }
   }

@@ -32,14 +32,21 @@ class ManageNotificationService {
 
       final now = DateTime.now();
       final after15Min = now.add(const Duration(minutes: 15));
-      final nextHour = DateTime(after15Min.year, after15Min.month,
-          after15Min.day, after15Min.hour + 1);
+      DateTime? nextHour;
+      if (now.hour == after15Min.hour) {
+        nextHour = DateTime(now.year, now.month, now.day, now.hour,
+            (now.minute + 15), (now.second + 15));
+      } else {
+        nextHour = DateTime(now.year, now.month, now.day, (now.hour + 1),
+            now.minute, now.second);
+      }
+
       final initialDelay = nextHour.difference(now);
 
       // Register morning task
       Workmanager().registerPeriodicTask(
-        WorkManagerConstants.morningUniqueName,
-        WorkManagerConstants.morningTaskName,
+        WorkManagerConstants.periodicUniqueName,
+        WorkManagerConstants.periodicTaskName,
         frequency: Duration(hours: delayInHours ?? 4),
         constraints: Constraints(
             // Consider adding networkType and requiresCharging constraints if needed
@@ -55,23 +62,6 @@ class ManageNotificationService {
         backoffPolicyDelay: const Duration(minutes: 15),
       );
 
-      // // Register night task
-      // Workmanager().registerPeriodicTask(
-      //   WorkManagerConstants.nightUniqueName,
-      //   WorkManagerConstants.nightTaskName,
-      //   frequency: const Duration(hours: 24),
-      //   constraints: Constraints(
-      //       networkType: NetworkType.not_required,
-      //       requiresCharging: false,
-      //       requiresBatteryNotLow: false,
-      //       requiresDeviceIdle: false,
-      //       requiresStorageNotLow: false),
-      //   initialDelay: nightDelay(),
-      //   existingWorkPolicy: ExistingWorkPolicy.replace,
-      //   backoffPolicy: BackoffPolicy.linear,
-      //   backoffPolicyDelay: const Duration(minutes: 15),
-      // );
-
       Fluttertoast.showToast(
         msg: WorkManagerConstants.workManagerInitialize,
         toastLength: Toast.LENGTH_SHORT,
@@ -84,31 +74,32 @@ class ManageNotificationService {
     });
   }
 
-  // Duration morningDelay() {
-  //   final now = DateTime.now();
-  //   var next9AM = DateTime(now.year, now.month, now.day, 9, 0, 0);
-  //
-  //   // If current time is after or equal to 9 AM, schedule for next day
-  //   if (now.isAfter(next9AM) || now.isAtSameMomentAs(next9AM)) {
-  //     next9AM = DateTime(now.year, now.month, now.day + 1, 9, 0, 0);
-  //   }
-  //
-  //   final difference = next9AM.difference(now);
-  //   debugPrint("morning difference : ${difference.inHours} hs, ${difference.inMinutes/60} m");
-  //   return difference;
-  // }
-  //
-  // Duration nightDelay() {
-  //   final now = DateTime.now();
-  //   var next9PM = DateTime(now.year, now.month, now.day, 21, 0, 0);
-  //
-  //   // If current time is after or equal to 9 PM, schedule for next day
-  //   if (now.isAfter(next9PM) || now.isAtSameMomentAs(next9PM)) {
-  //     next9PM = DateTime(now.year, now.month, now.day + 1, 21, 0, 0);
-  //   }
-  //
-  //   final difference = next9PM.difference(now);
-  //   debugPrint("night difference : ${difference.inHours} hs, ${difference.inMinutes/60} m");
-  //   return difference;
-  // }
+  void specificRemainderTask(int hour) async {
+    final taskName = 'TaskTracker_SpecificTaskRemainder_Hour$hour';
+
+    final now = DateTime.now();
+    var nextTrigger = DateTime(now.year, now.month, now.day, hour);
+    if (now.isAfter(nextTrigger)) {
+      nextTrigger = nextTrigger.add(const Duration(days: 1));
+    }
+    final delay = nextTrigger.difference(now);
+
+    Workmanager().registerPeriodicTask(
+      WorkManagerConstants.specificTaskName,
+      taskName,
+      frequency: const Duration(hours: 24),
+      initialDelay: delay,
+      constraints: Constraints(
+          // Consider adding networkType and requiresCharging constraints if needed
+          networkType: NetworkType.not_required,
+          requiresCharging: false,
+          requiresBatteryNotLow: false,
+          requiresDeviceIdle: false,
+          requiresStorageNotLow: false),
+      existingWorkPolicy: ExistingWorkPolicy
+          .replace, // Set existingWorkPolicy to replace to ensure tasks are always scheduled
+      backoffPolicy: BackoffPolicy.linear, // to retry failed tasks
+      backoffPolicyDelay: const Duration(minutes: 15),
+    );
+  }
 }

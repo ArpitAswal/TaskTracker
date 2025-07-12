@@ -13,6 +13,7 @@ class WorkManagerConstants {
   static const String periodicUniqueName = 'TaskTracker_PeriodicTaskCheck';
   static const String nightTaskName = 'TaskTracker_NightRemainder';
   static const String nightUniqueName = 'TaskTracker_NightTaskCheck';
+  static const String specificTaskName = 'TaskTracker_SpecificTaskRemainder';
   static const String workManagerCancel =
       'Previous Periodic Notifications Cancel';
   static const String workManagerInitialize = 'New Periodic Notifications Set';
@@ -22,6 +23,8 @@ class HiveDatabaseConstants {
   static const String todoHive = 'TodoBox';
   static const String managerHive = 'WorkManagerTasks';
   static const String managerInitialize = 'WorkManagerInitialize';
+  static const String managerFrequency = "ManagerFrequency";
+  static const String frequencyValue = "ManagerFrequencyValue";
   static const String permissionHive = 'PermissionsAsked';
   static const String permissionHiveAsk = 'PermissionAlreadyAsked';
   static const String authHive = 'UserInfo';

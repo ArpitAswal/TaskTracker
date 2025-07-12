@@ -69,40 +69,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget delayHourSelector(
       {required Function(int hours) onHourSelected,
       required BuildContext context}) {
+    int hour = provider.selectedHour;
+
     return SettingsCard.infoCard(
       context,
       tap: () {
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (BuildContext context) {
             return Dialog(
                 backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),
+                  side: const BorderSide(color: Colors.white)
                 ),
+                shadowColor: Theme.of(context).primaryColor,
                 elevation: 8.0,
                 child: SizedBox(
-                  width: MediaQuery.of(context).size.width / 2,
-                  child: DropdownButton<int>(
-                    value: provider.selectedHour,
-                    icon: const Icon(Icons.more_time_outlined),
-                    underline: null,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 6.0),
-                    isExpanded: true,
-                    items: List.generate(12, (index) => index + 1)
-                        .map((hour) => DropdownMenuItem<int>(
-                              value: hour,
-                              child: Text('$hour hour${hour > 1 ? 's' : ''}'),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        provider.setSelectedHour(value);
-                        onHourSelected(value);
-                        Navigator.of(context).pop();
-                      }
-                    },
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 15.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("Schedules a periodic task that will run every provided frequency",
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButton<int>(
+                          dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                          focusColor: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12.0),
+                          value: hour,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
+                          //icon: Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
+                          iconEnabledColor: Theme.of(context).primaryColor,
+                          underline: null,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 6.0),
+                          isExpanded: true,
+                          items: List.generate(12, (index) => index + 1)
+                              .map((hr) => DropdownMenuItem<int>(
+                                    value: hr,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Text('$hr hour${hr > 1 ? 's' : ''}',
+                                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
+                                          ),
+                                        ),
+                                        Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
+                                      ],
+                                    ),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              hour = value;
+                            }
+                          },
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Note: The Workmanager will reschedule again!",
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).primaryColor),
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style:  Theme.of(context).secondaryElevatedButtonStyle(
+                                    context,
+                                    minWidth: MediaQuery.of(context).size.width / 4,
+                                    borderRadius: 14),
+                                child: const Text("Cancel"),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  provider.setSelectedHour(hour);
+                                  onHourSelected(hour);
+                                  Navigator.of(context).pop();
+                                },
+                                style:  Theme.of(context).primaryElevatedButtonStyle(
+                                    context,
+                                    minWidth: MediaQuery.of(context).size.width / 4,
+                                    borderRadius: 14),
+                                child: const Text("Set"),
+                              ),
+                            )
+                          ],
+                        ),
+                        const SizedBox(height: 8.0)
+                      ],
+                    ),
                   ),
                 ));
           },
@@ -239,7 +312,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ElevatedButton(
                               onPressed: () {
                                 context.read<TodoProvider>().drawerIndex.value = 0;
-                                context.read<TodoProvider>().setIndex(1);
+                                //context.read<TodoProvider>().setIndex(1);
                               },
                               style: Theme.of(context)
                                   .primaryElevatedButtonStyle(context,

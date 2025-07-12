@@ -6,6 +6,9 @@ class TodoModel {
   DateTime startDate;
   DateTime endDate;
   DateTime createdAtTime;
+  bool isSpecificTimeRemainder;
+  int? reminderHour;
+  int? reminderMinute;
 
   TodoModel({
     required this.title,
@@ -15,5 +18,8 @@ class TodoModel {
     required this.startDate,
     required this.endDate,
     required this.createdAtTime,
+    this.isSpecificTimeRemainder = false,
+    this.reminderHour,
+    this.reminderMinute
   });
 }

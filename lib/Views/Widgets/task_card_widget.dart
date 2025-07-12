@@ -23,6 +23,10 @@ class TaskCardWidget extends StatefulWidget {
 class _TaskCardWidgetState extends State<TaskCardWidget> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
+  late bool isSpecific;
+  late int selectedHour;
+  late int selectedMinute;
+  final now = DateTime.now();
 
   @override
   void initState() {
@@ -30,6 +34,13 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
     if (widget.task != null) {
       titleController.text = widget.task!.title;
       descriptionController.text = widget.task!.description;
+      isSpecific = widget.task!.isSpecificTimeRemainder;
+      selectedHour = widget.task!.reminderHour ?? selectedHour;
+      selectedMinute = widget.task!.reminderMinute ?? selectedMinute;
+    } else{
+      isSpecific = false;
+      selectedMinute = now.minute;
+      selectedHour = now.hour;
     }
     context.read<TodoProvider>().setDateTime(widget.task);
   }
@@ -69,7 +80,58 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
                 errorText: provider.descriptionError,
                 maxLength: 120,
                 color: lineColor),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 8.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Checkbox(
+                  side: BorderSide(color: Theme.of(context).primaryColor),
+                  value: isSpecific,
+                  onChanged: (value) {
+                    setState(() {
+                      isSpecific = value!;
+                    });
+                  },
+                ),
+                Expanded(child: Text("Only Specific Hour",
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),)),
+                if (isSpecific)
+                  GestureDetector(
+                    onTap: () {
+                      DatePicker.showTimePicker(
+                        context,
+                        showSecondsColumn: false,
+                        showTitleActions: true,
+                        currentTime: DateTime(now.year,now.month,now.day,now.hour,now.minute,0,0,0),
+                        onConfirm: (time) {
+                            selectedHour = time.hour;
+                            selectedMinute = time.minute;
+                            setState(() {
+
+                            });
+                        },
+                      );
+                    },
+                    child: Container(
+                      height: 30,
+                        constraints: BoxConstraints(
+                          minWidth: MediaQuery.of(context).size.width * 0.15
+                        ),
+                        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(color: Theme.of(context).colorScheme.secondary)
+                        ),
+                        alignment: Alignment.center,
+                        child: Text("${selectedHour.toString()}:${(selectedMinute < 10)? '0' : ''}${selectedMinute.toString()}",
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.secondary),)),
+                  ),
+              ],
+            ),
             _buildDatePickerField("Task Created Time", lineColor),
             _buildDatePickerField("Task Start Date", lineColor),
             _buildDatePickerField("Task End Date", lineColor),
@@ -328,6 +390,9 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
       widget.task!.startDate = prov.taskStartDate;
       widget.task!.endDate = prov.taskEndDate;
       widget.task!.createdAtTime = prov.taskTime;
+      widget.task!.isSpecificTimeRemainder = isSpecific;
+      widget.task!.reminderHour = selectedHour;
+      widget.task!.reminderMinute = selectedMinute;
       widget.onSuccess(widget.task!);
       Navigator.pop(context);
     } else {
@@ -337,7 +402,11 @@ class _TaskCardWidgetState extends State<TaskCardWidget> {
           id: prov.taskIndex + 1,
           startDate: prov.taskStartDate,
           endDate: prov.taskEndDate,
-          createdAtTime: prov.taskTime);
+          createdAtTime: prov.taskTime,
+          isSpecificTimeRemainder: isSpecific,
+          reminderHour: selectedHour,
+          reminderMinute: selectedMinute
+      );
       if (checkValidation(title, desc, prov)) {
         widget.onSuccess(todo);
         prov.setTitleError("");

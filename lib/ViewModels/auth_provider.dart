@@ -16,6 +16,7 @@ class AuthenticateProvider extends ChangeNotifier {
   late AuthenticateModel _authUser;
   late InitializationService _service;
   late DynamicContextWidgets _dynamic;
+  late int _selectedHour;
 
   bool _loginLoading = false;
   bool _isObscured = true;
@@ -25,7 +26,6 @@ class AuthenticateProvider extends ChangeNotifier {
   bool _adminFocus = false;
   bool _notOnboarding = true;
   String _selectedRole = "Select";
-  int _selectedHour = 1;
 
   String? _error;
   UpdateSuccess userInfo = UpdateSuccess.initial;
@@ -51,6 +51,7 @@ class AuthenticateProvider extends ChangeNotifier {
     _authUser = AuthenticateModel(name: "", email: "", id: "", role: "");
     _dynamic = DynamicContextWidgets();
     getUserPreference();
+    setSelectedHour(null);
   }
 
   void toggleObscure() {
@@ -88,8 +89,19 @@ class AuthenticateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedHour(int value) {
-    _selectedHour = value;
+  void setSelectedHour(int? value) {
+    Box<int> hiveBox = Hive.box<int>(HiveDatabaseConstants.managerFrequency);
+    int? freqValue = hiveBox.get(HiveDatabaseConstants.frequencyValue);
+    if(value == null && freqValue == null) {
+      hiveBox.put(HiveDatabaseConstants.frequencyValue, 1);
+      _selectedHour = 1;
+    } else if(value == null && freqValue != null){
+      _selectedHour = hiveBox.get(HiveDatabaseConstants.frequencyValue) ?? 1;
+    }
+    else{
+      hiveBox.put(HiveDatabaseConstants.frequencyValue, value!);
+      _selectedHour = value;
+    }
     notifyListeners();
   }
 

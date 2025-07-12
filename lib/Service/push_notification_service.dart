@@ -66,8 +66,9 @@ class PushNotificationsService {
           importance: Importance.max,
           priority: Priority.high,
           ticker: 'ticker',
-          showProgress: false,
+          showProgress: true,
           playSound: true,
+          silent: false
         ),
         iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -122,37 +123,15 @@ class PushNotificationsService {
     final location = tz.getLocation('Asia/Kolkata');
     final now = tz.TZDateTime.now(location);
     tz.TZDateTime scheduledDate = tz.TZDateTime(location, now.year, now.month,
-        now.day, now.hour, (now.minute + 1), now.second);
-    // if (id == 1 && show == false) {
-    //   _notificationPlugin.cancel(1);
-    // } else {
-    //   debugPrint("schedule: ${scheduledDate.timeZone}");
-    //   await _notificationPlugin.zonedSchedule(
-    //       id, // Unique ID for scheduling.
-    //       (id == 0)
-    //           ? (show)
-    //               ? NotificationConstants.dailyTitle
-    //               : NotificationConstants.newFreshTitle
-    //           : NotificationConstants.pendingTitle,
-    //       (id == 0)
-    //           ? (show)
-    //               ? NotificationConstants.dailyBody
-    //               : NotificationConstants.newFreshBody
-    //           : NotificationConstants.pendingBody,
-    //       scheduledDate,
-    //       notificationDetails(),
-    //       matchDateTimeComponents:
-    //           DateTimeComponents.time, // Repeat daily at this time
-    //       uiLocalNotificationDateInterpretation:
-    //           UILocalNotificationDateInterpretation.absoluteTime,
-    //       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
-    // }
+        now.day, now.hour, now.minute, (now.second + 10));
+    AndroidNotificationChannel channel = makeChannel(null);
+
     await _notificationPlugin.zonedSchedule(
-        scheduledDate.timeZone.hashCode, // Unique ID for scheduling.
+        scheduledDate.microsecond, // Unique ID for scheduling.
         NotificationConstants.newFreshTitle,
         NotificationConstants.newFreshBody,
         scheduledDate,
-        notificationDetails(),
+        notificationDetails(channel: channel),
         matchDateTimeComponents:
             DateTimeComponents.time, // Repeat daily at this time
         uiLocalNotificationDateInterpretation:

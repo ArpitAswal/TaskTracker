@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:todo_task/Service/manage_notification_service.dart';
 import 'package:todo_task/Utils/helpers/dynamic_context_widgets.dart';
 import 'package:todo_task/ViewModels/setting_provider.dart';
 
@@ -11,7 +12,7 @@ import '../Service/push_notification_service.dart';
 import '../Utils/constants/app_constants.dart';
 
 class TodoProvider extends ChangeNotifier {
-  final Box<TodoModel> _todoBox = Hive.box<TodoModel>('todoBox');
+  final Box<TodoModel> _todoBox = Hive.box<TodoModel>(HiveDatabaseConstants.todoHive);
   final notificationService = PushNotificationsService();
   final initService = InitializationService();
   late ValueNotifier<int> _drawerIndex;
@@ -86,6 +87,9 @@ class TodoProvider extends ChangeNotifier {
     _todoBox.add(todo);
     _taskIndex = todo.id;
     notificationService.showLocalTaskNotification(todo: todo);
+    if(todo.isSpecificTimeRemainder){
+        ManageNotificationService().specificRemainderTask(todo.reminderHour!);
+    }
   }
 
   List<TodoModel> getTodos() {
