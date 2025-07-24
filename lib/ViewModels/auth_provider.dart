@@ -16,7 +16,6 @@ class AuthenticateProvider extends ChangeNotifier {
   late AuthenticateModel _authUser;
   late InitializationService _service;
   late DynamicContextWidgets _dynamic;
-  late int _selectedHour;
 
   bool _loginLoading = false;
   bool _isObscured = true;
@@ -39,19 +38,21 @@ class AuthenticateProvider extends ChangeNotifier {
   bool get adminFocus => _adminFocus;
   bool get notOnboarding => _notOnboarding;
   String get selectedRole => _selectedRole;
-  int get selectedHour => _selectedHour;
   String? get error => _error;
   AuthenticateModel get authUser => _authUser;
+  Box<int> hiveBox = Hive.box<int>(HiveDatabaseConstants.managerFrequency);
 
   AuthenticateProvider() {
     _auth = FirebaseAuth.instance;
     _firestore = FirebaseFirestore.instance;
-    _userAuth = Hive.box<AuthenticateModel>(HiveDatabaseConstants.authHive);
     _service = InitializationService();
-    _authUser = AuthenticateModel(name: "", email: "", id: "", role: "");
+    _authUser = AuthenticateModel(name: "", email: "", id: "", role: "", password: "", isChecked: false);
+    _userAuth = Hive.box<AuthenticateModel>(HiveDatabaseConstants.authHive);
     _dynamic = DynamicContextWidgets();
-    getUserPreference();
     setSelectedHour(null);
+    if(_auth.currentUser != null){
+      getUserPreference();
+    }
   }
 
   void toggleObscure() {
@@ -90,17 +91,12 @@ class AuthenticateProvider extends ChangeNotifier {
   }
 
   void setSelectedHour(int? value) {
-    Box<int> hiveBox = Hive.box<int>(HiveDatabaseConstants.managerFrequency);
     int? freqValue = hiveBox.get(HiveDatabaseConstants.frequencyValue);
-    if(value == null && freqValue == null) {
+    if(value == null || freqValue == null) {
       hiveBox.put(HiveDatabaseConstants.frequencyValue, 1);
-      _selectedHour = 1;
-    } else if(value == null && freqValue != null){
-      _selectedHour = hiveBox.get(HiveDatabaseConstants.frequencyValue) ?? 1;
     }
     else{
-      hiveBox.put(HiveDatabaseConstants.frequencyValue, value!);
-      _selectedHour = value;
+      hiveBox.put(HiveDatabaseConstants.frequencyValue, value);
     }
     notifyListeners();
   }
@@ -111,10 +107,43 @@ class AuthenticateProvider extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      await _auth.signInWithEmailAndPassword(
+      UserCredential? userCred = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      // Track who wants to be remembered
+      final rememberedUsers = _userAuth.values.toList();
+      if(rememberedUsers.isNotEmpty) {
+        if (_isChecked && rememberedUsers.contains(authUser)) {
+          for (var user in rememberedUsers) {
+            if (user.id == authUser.id) {
+              user.isChecked = true;
+              // Save current user as the last active user
+              await _userAuth.put('lastUserUID', user);
+            }
+          }
+        } else if (!isChecked && rememberedUsers.contains(authUser)) {
+          for (var user in rememberedUsers) {
+            if (user.id == authUser.id) {
+              user.isChecked = false;
+              // remove current user as the last active user
+              await _userAuth.delete('lastUserUID');
+            }
+          }
+        }
+      }
+        await _firestore
+            .collection(FirestoreConstants.usersCollection)
+            .doc(userCred.user?.uid)
+        .update({
+          "user_name": userCred.user?.displayName,
+          "user_id": userCred.user?.uid,
+          "user_email": email,
+          "user_password": password,
+          "user_checked": _isChecked
+        });
+
       return true;
     } catch (e) {
       _error = "Login failed: ${e.toString()}";
@@ -178,8 +207,10 @@ class AuthenticateProvider extends ChangeNotifier {
       id: userCred.user!.uid,
       email: email,
       role: role,
+      password: pass,
+      isChecked: _isChecked
     );
-    await _userAuth.put(authData.id, authData);
+    await _userAuth.put(userCred.user!.uid, authData);
     await _firestore
         .collection(FirestoreConstants.usersCollection)
         .doc(userCred.user!.uid)
@@ -189,6 +220,7 @@ class AuthenticateProvider extends ChangeNotifier {
       "user_email": email,
       "user_password": pass,
       "user_role": role,
+      "user_checked": _isChecked
     });
   }
 
@@ -212,7 +244,9 @@ class AuthenticateProvider extends ChangeNotifier {
             name: snapshot['user_name'],
             email: snapshot['user_email'],
             id: snapshot['user_id'],
-            role: snapshot['user_role']);
+            role: snapshot['user_role'],
+            password: snapshot['user_password'],
+            isChecked: snapshot['user_checked']);
         _userAuth.put(_authUser.id, _authUser);
       } else if (_auth.currentUser != null) {
         _dynamic.showSnackbar("User Information does not exist");
@@ -232,11 +266,6 @@ class AuthenticateProvider extends ChangeNotifier {
           password: pass, // Ask the user for their password
         );
 
-        await _auth.currentUser!.reauthenticateWithCredential(credential);
-
-        //remove WorkManager Tasks
-        _service.cancelWorkManagerTasks();
-
         // Delete user from Firestore
         await _firestore
             .collection(FirestoreConstants.usersCollection)
@@ -247,16 +276,26 @@ class AuthenticateProvider extends ChangeNotifier {
             .doc(uid)
             .delete();
 
-        // Remove hive values
-        Box<bool> themeBox = Hive.box<bool>(HiveDatabaseConstants.themeHive);
-        themeBox.put(_auth.currentUser!.uid, false);
-        // Remove user from Hive storage
-        await _userAuth.delete(uid);
+        await _auth.currentUser!.reauthenticateWithCredential(credential);
         // Delete the user from Firebase Authentication
         await _auth.currentUser!.delete();
+
+        //Remove lastUser info
+        await _userAuth.delete('lastUserUID');
+
         // sign out and navigate to login screen
-        _dynamic.showSnackbar("Delete the account successfully");
         await signOut();
+        _dynamic.showSnackbar("Delete the account successfully");
+
+        //remove WorkManager Tasks
+        _service.cancelWorkManagerTasks();
+
+        // Remove hive values
+        Box<bool> themeBox = Hive.box<bool>(HiveDatabaseConstants.themeHive);
+        themeBox.put(uid, false);
+
+        // Remove user from Hive storage
+        await _userAuth.delete(uid);
       }
     } catch (e) {
       _dynamic.showSnackbar("Error: ${e.toString()}");
@@ -271,10 +310,11 @@ class AuthenticateProvider extends ChangeNotifier {
           .collection(FirestoreConstants.usersCollection)
           .doc(_auth.currentUser!.uid)
           .update({'user_name': name, 'user_email': email});
+      _auth.currentUser?.updateDisplayName(name);
       userInfo = UpdateSuccess.success;
       notifyListeners();
       _authUser = AuthenticateModel(
-          name: name, id: _authUser.id, email: email, role: _authUser.role);
+          name: name, id: _authUser.id, email: email, role: _authUser.role, password: _authUser.password, isChecked: _authUser.isChecked);
       _userAuth.put(_authUser.id, _authUser);
       _dynamic.showSnackbar("Update Info Successfully");
     } catch (e) {
@@ -301,7 +341,7 @@ class AuthenticateProvider extends ChangeNotifier {
         .snapshots();
   }
 
-  Future<void> verifyAccount(
+  Future<bool> verifyAccount(
       {required String email,
       required String value,
       required bool update}) async {
@@ -312,18 +352,23 @@ class AuthenticateProvider extends ChangeNotifier {
           .get();
       if (snapshot.exists && snapshot['user_email'] == email) {
         if (!update && snapshot['user_password'] == value) {
-          deleteUserAccount(email, value);
+          await deleteUserAccount(email, value);
+          return true;
         } else if (update) {
-          updateUser(value, email);
+          await updateUser(value, email);
+          return true;
         } else {
           _dynamic.showSnackbar("Failed: enter the valid information");
+          return false;
         }
       } else {
         _dynamic.showSnackbar(
-            "You can not perform this operation because of privacy");
+            "Verification failed. Please check your email and password to confirm account deletion.");
+        return false;
       }
     } catch (e) {
       _dynamic.showSnackbar("Error: ${e.toString()}");
+      return false;
     }
   }
 
@@ -367,6 +412,19 @@ class AuthenticateProvider extends ChangeNotifier {
           .doc(_auth.currentUser?.uid)
           .update({'user_password': pass});
     }
+  }
+
+  AuthenticateModel? rememberMeUser() {
+    final users = _userAuth.values.toList();
+    final lastUser = _userAuth.get('lastUserUID');
+
+    if (users.contains(lastUser)) {
+      _isChecked = lastUser?.isChecked ?? false;
+      return lastUser;
+    }
+
+    _isChecked = false;
+    return null;
   }
 }
 

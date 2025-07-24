@@ -124,13 +124,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         color: AppColors.whiteColor,
                                         width: 2.0))),
                             child: loading
-                                ? const SizedBox(
-                                    height: 40,
-                                    width: 40,
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.whiteColor,
-                                    ),
-                                  )
+                                ? const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.whiteColor,
+                                backgroundColor: AppColors.blueColor,
+                              ),
+                            )
                                 : const Text('Submit'),
                           ),
                         ),

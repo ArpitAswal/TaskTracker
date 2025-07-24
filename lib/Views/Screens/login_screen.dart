@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_task/Models/auth_model.dart';
 import 'package:todo_task/Utils/clipper/curved_shapes.dart';
 import 'package:todo_task/Views/Screens/forgot_password_screen.dart';
 
@@ -33,17 +34,25 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailFocusNode.addListener(_onEmailFocusChange);
     _passFocusNode.addListener(_onPassFocusChange);
+    _fillData();
   }
 
   @override
   void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
     _emailFocusNode.removeListener(_onEmailFocusChange);
     _emailFocusNode.dispose();
     _passFocusNode.removeListener(_onPassFocusChange);
     _passFocusNode.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
+  }
+
+  void _fillData(){
+    final AuthenticateProvider auth = context.read<AuthenticateProvider>();
+     AuthenticateModel? user = auth.rememberMeUser();
+    _emailController.text = user?.email ?? "";
+    _passwordController.text = user?.password ?? "";
   }
 
   void _onEmailFocusChange() {
@@ -62,22 +71,22 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     final AuthenticateProvider auth = context.read<AuthenticateProvider>();
+
     final success = await auth.login(
       _emailController.text,
       _passwordController.text,
     );
 
-    if (success && mounted) {
+    if (success) {
       auth.getUserPreference();
       auth.changePassword(pass: _passwordController.text);
-      context.read<SettingsProvider>().checkTheme();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthStateHandler()),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const AuthStateHandler()),
+      // );
     } else {
+      print("else part calling again");
       dynMsg.showSnackbar(auth.error ?? "An error occurred");
     }
   }

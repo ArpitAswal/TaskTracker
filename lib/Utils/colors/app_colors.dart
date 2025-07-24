@@ -9,7 +9,8 @@ class AppColors {
   static const indigoColor = Color(0xFF4568dc);
   static const yellowColor = Color(0xFFFFDF5D);
   static const redColor = Color(0xFFFF1B1B);
-  static const greenColor = Color(0xFF1AFF00);
+  static const greenColor = Color(0xFF16BD03);
+  static const orangeColor = Color(0xFFFF8000);
 
   static const List<Color> primaryGradientColor = [
     Color(0xff4568dc),

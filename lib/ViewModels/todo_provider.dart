@@ -6,13 +6,15 @@ import 'package:todo_task/Service/manage_notification_service.dart';
 import 'package:todo_task/Utils/helpers/dynamic_context_widgets.dart';
 import 'package:todo_task/ViewModels/setting_provider.dart';
 
+import '../Models/auth_model.dart';
 import '../Models/todo_model.dart';
 import '../Service/initialization_service.dart';
 import '../Service/push_notification_service.dart';
 import '../Utils/constants/app_constants.dart';
 
 class TodoProvider extends ChangeNotifier {
-  final Box<TodoModel> _todoBox = Hive.box<TodoModel>(HiveDatabaseConstants.todoHive);
+  final Box<TodoModel> _todoBox =
+      Hive.box<TodoModel>(HiveDatabaseConstants.todoHive);
   final notificationService = PushNotificationsService();
   final initService = InitializationService();
   late ValueNotifier<int> _drawerIndex;
@@ -55,10 +57,11 @@ class TodoProvider extends ChangeNotifier {
     }
   }
 
-  void resetTasks() {
+  void deleteAllTasks() {
     _completedTask.clear();
     _todoBox.clear(); // Clears all tasks from the box
     _taskIndex = 0; // Resets the ID counter
+    _drawerIndex.value = 0;
     notifyListeners(); // Notify listeners to update the UI
   }
 
@@ -87,8 +90,8 @@ class TodoProvider extends ChangeNotifier {
     _todoBox.add(todo);
     _taskIndex = todo.id;
     notificationService.showLocalTaskNotification(todo: todo);
-    if(todo.isSpecificTimeRemainder){
-        ManageNotificationService().specificRemainderTask(todo.reminderHour!);
+    if (todo.isSpecificTimeRemainder) {
+      ManageNotificationService().specificRemainderTask(todo.reminderHour!);
     }
   }
 
@@ -166,9 +169,10 @@ class TodoProvider extends ChangeNotifier {
         icon: Icons.notification_add,
         btnText: "Enable",
         pressed: () async => await AppSettings.openAppSettings(
-            type: AppSettingsType.notification).whenComplete((){
+                    type: AppSettingsType.notification)
+                .whenComplete(() {
               notificationStatus();
-        })); //Example awaitable operation
+            })); //Example awaitable operation
   }
 
   Future<void> batteryRestriction() async {
@@ -193,13 +197,13 @@ class TodoProvider extends ChangeNotifier {
 
   Future<void> batteryStatus() async {
     Future.delayed(const Duration(seconds: 3), () async {
-        _setProv.checkBatteryOptimizationStatus();
+      _setProv.checkBatteryOptimizationStatus();
     });
   }
 
   Future<void> notificationStatus() async {
     Future.delayed(const Duration(seconds: 3), () async {
-        _setProv.checkNotificationStatus();
+      _setProv.checkNotificationStatus();
     });
   }
 
@@ -238,7 +242,7 @@ class TodoProvider extends ChangeNotifier {
         ? DynamicContextWidgets().deleteAlertMsg()
         : DynamicContextWidgets().deleteAllTask((bool delete) {
             if (delete) {
-              resetTasks();
+              deleteAllTasks();
             }
           });
   }

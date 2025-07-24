@@ -44,6 +44,7 @@ class _TaskScreenState extends State<TaskScreen>
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        context.read<SettingsProvider>().checkTheme();
         DynamicContextWidgets.init(context);
         _initializePermissions();
       }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_task/ViewModels/setting_provider.dart';
 import 'package:todo_task/ViewModels/todo_provider.dart';
+import 'package:todo_task/Views/Screens/policy_screen.dart';
+import 'package:todo_task/Views/Screens/terms_screen.dart';
 import 'package:todo_task/Views/Widgets/fill_fields.dart';
 
 import '../../Utils/helpers/dynamic_context_widgets.dart';
@@ -23,6 +25,8 @@ class _SettingScreenState extends State<SettingScreen>
   late SettingsProvider settingsProvider;
   late TextEditingController emailCtrl;
   late TextEditingController passCtrl;
+  late ValueNotifier<bool> deleteLoading;
+
   final formKey = GlobalKey<FormState>();
 
   @override
@@ -33,6 +37,7 @@ class _SettingScreenState extends State<SettingScreen>
     passCtrl = TextEditingController();
     taskProv = Provider.of<TodoProvider>(context, listen: false);
     settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    deleteLoading = ValueNotifier(false);
   }
 
   @override
@@ -56,135 +61,170 @@ class _SettingScreenState extends State<SettingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Consumer<SettingsProvider>(
-            builder: (BuildContext context, provider, Widget? child) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SettingsCard.infoCard(context,
-                  tap: null,
-                  label: provider.isDarkMode ? "Dark Theme" : "Light Theme",
-                  icon: provider.isDarkMode
-                      ? Icons.toggle_on_outlined
-                      : Icons.toggle_off_outlined,
-                  border: provider.isDarkMode,
-                  child: SettingsCard.flutterSwitchCard(
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Consumer<SettingsProvider>(
+                builder: (BuildContext context, provider, Widget? child) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SettingsCard.infoCard(context,
+                      tap: null,
+                      label: provider.isDarkMode ? "Dark Theme" : "Light Theme",
+                      icon: provider.isDarkMode
+                          ? Icons.toggle_on_outlined
+                          : Icons.toggle_off_outlined,
+                      border: provider.isDarkMode,
+                      child: SettingsCard.flutterSwitchCard(
+                          context: context,
+                          value: provider.isDarkMode,
+                          toggle: provider.changeTheme,
+                          borderColor: Theme.of(context).colorScheme.primary,
+                          toggleColor: Theme.of(context).scaffoldBackgroundColor,
+                          activeIcon: Icons.nightlight_round,
+                          inactiveIcon: Icons.wb_sunny,
+                          activeIconColor: AppColors.whiteColor,
+                          inactiveIconColor: AppColors.yellowColor)),
+                  SettingsCard.infoCard(
+                    context,
+                    tap: null,
+                    label: provider.isWorkManagerInitialize
+                        ? "Turn On Battery Saver"
+                        : "Turn Off Battery Restrictions",
+                    icon: provider.isWorkManagerInitialize
+                        ? Icons.battery_alert_outlined
+                        : Icons.battery_saver_outlined,
+                    border: provider.isDarkMode,
+                    child: SettingsCard.flutterSwitchCard(
                       context: context,
-                      value: provider.isDarkMode,
-                      toggle: provider.changeTheme,
+                      value: !provider.isWorkManagerInitialize,
+                      toggle: provider.toggleWorkManager,
                       borderColor: Theme.of(context).colorScheme.primary,
                       toggleColor: Theme.of(context).scaffoldBackgroundColor,
-                      activeIcon: Icons.nightlight_round,
-                      inactiveIcon: Icons.wb_sunny,
-                      activeIconColor: AppColors.whiteColor,
-                      inactiveIconColor: AppColors.yellowColor)),
-              SettingsCard.infoCard(
-                context,
-                tap: null,
-                label: provider.isWorkManagerInitialize
-                    ? "Turn On Battery Saver"
-                    : "Turn Off Battery Restrictions",
-                icon: provider.isWorkManagerInitialize
-                    ? Icons.battery_alert_outlined
-                    : Icons.battery_saver_outlined,
-                border: provider.isDarkMode,
-                child: SettingsCard.flutterSwitchCard(
-                  context: context,
-                  value: !provider.isWorkManagerInitialize,
-                  toggle: provider.toggleWorkManager,
-                  borderColor: Theme.of(context).colorScheme.primary,
-                  toggleColor: Theme.of(context).scaffoldBackgroundColor,
-                  activeIcon: Icons.battery_saver_outlined,
-                  inactiveIcon: Icons.battery_alert_outlined,
-                  activeIconColor: AppColors.greenColor,
-                  inactiveIconColor: AppColors.redColor,
-                ),
-              ),
-              SettingsCard.infoCard(
-                context,
-                tap: null,
-                label: provider.isNotificationAllow
-                    ? "Turn Off App Notification"
-                    : "Turn On App Notification",
-                icon: provider.isNotificationAllow
-                    ? Icons.notifications_active_outlined
-                    : Icons.notifications_off_outlined,
-                border: provider.isDarkMode,
-                child: SettingsCard.flutterSwitchCard(
-                  context: context,
-                  value: provider.isNotificationAllow,
-                  toggle: provider.toggleNotification,
-                  borderColor: Theme.of(context).colorScheme.primary,
-                  toggleColor: Theme.of(context).scaffoldBackgroundColor,
-                  activeIcon: Icons.notifications_active_outlined,
-                  inactiveIcon: Icons.notifications_off_outlined,
-                  activeIconColor: AppColors.greenColor,
-                  inactiveIconColor: AppColors.redColor,
-                ),
-              ),
-              SettingsCard.infoCard(context, border: provider.isDarkMode,
-                  tap: () {
-                taskProv.deleteTaskMsg();
-              },
-                  icon: Icons.delete_outline_outlined,
-                  label: "Delete All Tasks"),
-              SettingsCard.infoCard(context, border: provider.isDarkMode,
-                  tap: () {
-                DynamicContextWidgets().deleteAccount((bool delete) {
-                  if (delete) {
-                    FillFields(
-                            context: context,
-                            key: formKey,
-                            firstCtrl: emailCtrl,
-                            secondCtrl: passCtrl)
-                        .fillUserInfo(
-                            lineColor: settingsProvider.isDarkMode
-                                ? Theme.of(context).colorScheme.secondary
-                                : Theme.of(context).colorScheme.tertiary,
-                            label1: "Email Address 💌",
-                            label2: "Password 👁️",
-                            val1: 'Email is required',
-                            val2: 'Password is required',
-                            action: (email, value) async {
-                              await context
-                                  .read<AuthenticateProvider>()
-                                  .verifyAccount(
-                                      email: email,
-                                      value: value,
-                                      update: false);
-                              taskProv.resetTasks();
-                            });
-                  }
-                });
-              }, icon: Icons.no_accounts_outlined, label: "Delete Account"),
-              SettingsCard.infoCard(context,
-                  border: provider.isDarkMode,
-                  tap: () {},
-                  icon: Icons.menu_book_outlined,
-                  label: "Terms of Service"),
-              SettingsCard.infoCard(context,
-                  border: provider.isDarkMode,
-                  tap: () {},
-                  icon: Icons.privacy_tip_outlined,
-                  label: "Privacy Policy"),
-              SettingsCard.infoCard(context, border: provider.isDarkMode,
-                  tap: () async {
-                await context.read<AuthenticateProvider>().signOut();
-                if (mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const AuthStateHandler()),
-                    (route) => false,
-                  );
-                }
-              }, icon: Icons.logout_outlined, label: "LogOut"),
-            ],
-          );
-        }),
+                      activeIcon: Icons.battery_saver_outlined,
+                      inactiveIcon: Icons.battery_alert_outlined,
+                      activeIconColor: AppColors.greenColor,
+                      inactiveIconColor: AppColors.redColor,
+                    ),
+                  ),
+                  SettingsCard.infoCard(
+                    context,
+                    tap: null,
+                    label: provider.isNotificationAllow
+                        ? "Turn Off App Notification"
+                        : "Turn On App Notification",
+                    icon: provider.isNotificationAllow
+                        ? Icons.notifications_active_outlined
+                        : Icons.notifications_off_outlined,
+                    border: provider.isDarkMode,
+                    child: SettingsCard.flutterSwitchCard(
+                      context: context,
+                      value: provider.isNotificationAllow,
+                      toggle: provider.toggleNotification,
+                      borderColor: Theme.of(context).colorScheme.primary,
+                      toggleColor: Theme.of(context).scaffoldBackgroundColor,
+                      activeIcon: Icons.notifications_active_outlined,
+                      inactiveIcon: Icons.notifications_off_outlined,
+                      activeIconColor: AppColors.greenColor,
+                      inactiveIconColor: AppColors.redColor,
+                    ),
+                  ),
+                  SettingsCard.infoCard(context, border: provider.isDarkMode,
+                      tap: () {
+                    taskProv.deleteTaskMsg();
+                  },
+                      icon: Icons.delete_outline_outlined,
+                      label: "Delete All Tasks"),
+                  SettingsCard.infoCard(context, border: provider.isDarkMode,
+                      tap: () {
+                    DynamicContextWidgets().deleteAccount((bool delete) {
+                      if (delete) {
+                        FillFields(
+                                context: context,
+                                key: formKey,
+                                firstCtrl: emailCtrl,
+                                secondCtrl: passCtrl)
+                            .fillUserInfo(
+                                lineColor: settingsProvider.isDarkMode
+                                    ? Theme.of(context).colorScheme.secondary
+                                    : Theme.of(context).colorScheme.tertiary,
+                                label1: "Email Address 💌",
+                                label2: "Password 👁️",
+                                val1: 'Email is required',
+                                val2: 'Password is required',
+                                action: (email, value) async {
+                                  deleteLoading.value = true;
+                                  bool done = await context
+                                      .read<AuthenticateProvider>()
+                                      .verifyAccount(
+                                          email: email,
+                                          value: value,
+                                          update: false);
+                                  deleteLoading.value = false;
+                                  if(done) {
+                                    taskProv.deleteAllTasks();
+                                  }
+                                });
+                      }
+                    });
+                  }, icon: Icons.no_accounts_outlined, label: "Delete Account"),
+                  SettingsCard.infoCard(context,
+                      border: provider.isDarkMode,
+                      tap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsScreen(
+                              title: 'Terms of Service',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: Icons.menu_book_outlined,
+                      label: "Terms of Service"),
+                  SettingsCard.infoCard(context,
+                      border: provider.isDarkMode,
+                      tap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PolicyScreen(
+                              title: 'Privacy Policy',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: Icons.privacy_tip_outlined,
+                      label: "Privacy Policy"),
+                  SettingsCard.infoCard(context, border: provider.isDarkMode,
+                      tap: () async {
+                    await context.read<AuthenticateProvider>().signOut();
+                    if (mounted) {
+                      taskProv.drawerIndex.value = 0;
+                      // Navigator.of(context).pushAndRemoveUntil(
+                      //   MaterialPageRoute(
+                      //       builder: (context) => const AuthStateHandler()),
+                      //   (route) => false,
+                      // );
+                    }
+                  }, icon: Icons.logout_outlined, label: "LogOut"),
+                ],
+              );
+            }),
+          ),
+          ValueListenableBuilder(valueListenable: deleteLoading,
+              builder: (context, value, child){
+                return (value) ?
+                  const Center(
+                    child: CircularProgressIndicator(
+                    ),
+                  ) : const SizedBox.shrink();
+              })
+        ],
       ),
     );
   }

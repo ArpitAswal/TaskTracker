@@ -76,7 +76,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (success && mounted) {
       auth.getUserPreference();
-      context.read<SettingsProvider>().checkTheme();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const AuthStateHandler()),

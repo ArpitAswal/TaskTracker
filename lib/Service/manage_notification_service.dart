@@ -31,23 +31,24 @@ class ManageNotificationService {
       );
 
       final now = DateTime.now();
-      final after15Min = now.add(const Duration(minutes: 15));
-      DateTime? nextHour;
-      if (now.hour == after15Min.hour) {
-        nextHour = DateTime(now.year, now.month, now.day, now.hour,
-            (now.minute + 15), (now.second + 15));
-      } else {
-        nextHour = DateTime(now.year, now.month, now.day, (now.hour + 1),
-            now.minute, now.second);
-      }
-
-      final initialDelay = nextHour.difference(now);
+      // final after15Min = now.add(const Duration(minutes: 15));
+      // DateTime? nextHour;
+      // if (now.hour == after15Min.hour) {
+      //   nextHour = DateTime(now.year, now.month, now.day, now.hour,
+      //       (now.minute + 15), (now.second + 15));
+      // } else {
+      //   nextHour = DateTime(now.year, now.month, now.day, (now.hour + 1),
+      //       now.minute, now.second);
+      // }
+      var nextTrigger =
+          DateTime(now.year, now.month, now.day, delayInHours ?? 1, now.minute);
+      final initialDelay = nextTrigger.difference(now);
 
       // Register morning task
       Workmanager().registerPeriodicTask(
         WorkManagerConstants.periodicUniqueName,
         WorkManagerConstants.periodicTaskName,
-        frequency: Duration(hours: delayInHours ?? 4),
+        frequency: Duration(hours: delayInHours ?? 1),
         constraints: Constraints(
             // Consider adding networkType and requiresCharging constraints if needed
             networkType: NetworkType.not_required,

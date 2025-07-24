@@ -77,10 +77,15 @@ class InitializationService {
   }
 
   void initializeWorkManagerTasks() {
+    Box<int> freqBox = Hive.box<int>(HiveDatabaseConstants.managerFrequency);
+    int? freqValue = freqBox.get(HiveDatabaseConstants.frequencyValue);
+
     Box<bool> hiveBox = Hive.box<bool>(HiveDatabaseConstants.managerHive);
     bool? isInitialize = hiveBox.get(HiveDatabaseConstants.managerInitialize);
+
     if (isInitialize == null || !isInitialize) {
-      _notProv.initBackground();
+      _notProv.initBackground(delayInHours:  freqValue ?? 1);
+      _pushNotifications.scheduleNotification();
       Box<TodoModel> taskList =
           Hive.box<TodoModel>(HiveDatabaseConstants.todoHive);
       for (var task in taskList.values.toList()) {
@@ -112,7 +117,7 @@ class InitializationService {
           .doc(userId)
           .set({"token": token});
       String response = await _requests.storeTokenToBackend(token);
-      if (response != "Success") {
+      if(!response.contains('Timeout Error') && (response != "Success")) {
         snackbar.showSnackbar("Device token is not saved on server!");
       }
     } else if (token == null) {
@@ -123,7 +128,7 @@ class InitializationService {
           .doc(userId)
           .delete();
       String response = await _requests.deleteTokenFromBackend();
-      if (response != "Success") {
+      if (!response.contains("Timeout Error") && response != "Success") {
         snackbar.showSnackbar("Device token is not delete from server!");
       }
     }

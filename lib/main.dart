@@ -168,7 +168,8 @@ class MyApp extends StatelessWidget {
           primary: AppColors.blueColor,
           secondary: AppColors.whiteColor,
           tertiary: AppColors.textColor,
-          // onSurface: AppColors.whiteColor
+          onPrimary: AppColors.blackColor,
+          onSecondary: AppColors.redColor
         ),
         appBarTheme: AppBarTheme(
             centerTitle: true,
@@ -192,7 +193,8 @@ class MyApp extends StatelessWidget {
           primary: AppColors.indigoColor,
           secondary: AppColors.whiteColor,
           tertiary: AppColors.textColor,
-          // onSurface: AppColors.blackColor
+          onPrimary: AppColors.whiteColor,
+          onSecondary: AppColors.orangeColor
         ),
       ),
       themeMode: context.watch<SettingsProvider>().currentTheme,

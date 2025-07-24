@@ -17,15 +17,18 @@ class NodeServerRepository {
 
       final response = await http
           .post(
-            url,
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({
-              "collection": FirestoreConstants.tokenCollection,
-              "docId": FirebaseAuth.instance.currentUser!.uid,
-              "token": token
-            }),
-          )
-          .timeout(timeoutDuration);
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "collection": FirestoreConstants.tokenCollection,
+          "docId": FirebaseAuth.instance.currentUser!.uid,
+          "token": token
+        }),
+      )
+          .timeout(timeoutDuration, onTimeout: () {
+        // Optional: Execute code on timeout before throwing TimeoutException
+        throw TimeoutException('The request timed out.');
+      });
 
       if (response.statusCode == 200) {
         return "Success";
@@ -38,6 +41,8 @@ class NodeServerRepository {
             responseData["message"] ?? "Unexpected error occurred";
         return "Notification Request Failed: $serverMessage";
       }
+    } on TimeoutException catch (e) {
+      return ('Timeout Error: ${e.message}');
     } catch (e) {
       return "Error: ${e.toString()}";
     }

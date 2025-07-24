@@ -25,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  ValueNotifier<int> selectHour = ValueNotifier<int>(1);
 
   late AuthenticateProvider provider;
 
@@ -69,11 +70,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget delayHourSelector(
       {required Function(int hours) onHourSelected,
       required BuildContext context}) {
-    int hour = provider.selectedHour;
 
     return SettingsCard.infoCard(
       context,
       tap: () {
+        selectHour.value = provider.hiveBox.values.toList().first;
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -99,41 +100,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold),
                         ),
-                        DropdownButton<int>(
-                          dropdownColor: Theme.of(context).scaffoldBackgroundColor,
-                          focusColor: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12.0),
-                          value: hour,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
-                          //icon: Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
-                          iconEnabledColor: Theme.of(context).primaryColor,
-                          underline: null,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12.0, vertical: 6.0),
-                          isExpanded: true,
-                          items: List.generate(12, (index) => index + 1)
-                              .map((hr) => DropdownMenuItem<int>(
-                                    value: hr,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          child: Text('$hr hour${hr > 1 ? 's' : ''}',
-                                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
+                        ValueListenableBuilder(
+                          valueListenable: selectHour,
+                          builder: (context, value, child){
+                            return DropdownButton<int>(
+                                dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                            focusColor: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(12.0),
+                            value: value,
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
+                            //icon: Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
+                            iconEnabledColor: Theme.of(context).primaryColor,
+                            underline: null,
+                            padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 6.0),
+                            isExpanded: true,
+                            items: List.generate(12, (index) => index + 1)
+                                .map((hr) => DropdownMenuItem<int>(
+                                      value: hr,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Expanded(
+                                            child: Text('$hr hour${hr > 1 ? 's' : ''}',
+                                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).primaryColor),
+                                            ),
                                           ),
-                                        ),
-                                        Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
-                                      ],
-                                    ),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              hour = value;
-                            }
-                          },
-                        ),
+                                          Icon(Icons.more_time_outlined, color: Theme.of(context).primaryColor),
+                                        ],
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                selectHour.value = value;
+                              }
+                            },
+                          );
+                          }),
 
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -156,12 +161,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: const Text("Cancel"),
                               ),
                             ),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  provider.setSelectedHour(hour);
-                                  onHourSelected(hour);
+                                  provider.setSelectedHour(selectHour.value);
+                                  onHourSelected(selectHour.value);
                                   Navigator.of(context).pop();
                                 },
                                 style:  Theme.of(context).primaryElevatedButtonStyle(
@@ -194,6 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (!snapshot.hasData) {
           return const CircularProgressIndicator();
         }
+        print("Snapshot Data: ${snapshot.data!.data().toString()}");
         var userData = AuthenticateModel.fromMap(
             snapshot.data!.data() as Map<String, dynamic>);
         return Row(

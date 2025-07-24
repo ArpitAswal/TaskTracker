@@ -24,7 +24,7 @@ class SettingsProvider extends ChangeNotifier {
   SettingsProvider() {
     checkTheme();
     checkNotificationStatus();
-    checkBatteryOptimizationStatus();
+    // checkBatteryOptimizationStatus();
   }
 
   void changeTheme() {

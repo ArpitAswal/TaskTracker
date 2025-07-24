@@ -12,6 +12,8 @@ class AuthenticateAdapter extends TypeAdapter<AuthenticateModel> {
       email: reader.readString(),
       id: reader.readString(),
       role: reader.readString(),
+      password: reader.readString(),
+      isChecked: reader.readBool()
     );
   }
 
@@ -21,5 +23,7 @@ class AuthenticateAdapter extends TypeAdapter<AuthenticateModel> {
     writer.writeString(obj.email);
     writer.writeString(obj.id);
     writer.writeString(obj.role);
+    writer.writeString(obj.password);
+    writer.writeBool(obj.isChecked);
   }
 }

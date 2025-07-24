@@ -21,35 +21,35 @@ TaskTracker is more than just a task management tool—it is a productivity part
 
 📋 **Task Management:**  Tasks are organized into two categories using TabBar and TabBarView. Users can navigate between tabs via swiping or tab selection.
 
-- Pending Tasks: Displays tasks yet to be completed.
+- ***Pending Tasks:*** Displays tasks that are not yet completed and still active based on their end date.
 
-- Completed Tasks: Lists tasks marked as done.
+- ***Completed Tasks:*** Shows all tasks marked as finished.
 
-- Create, Read, Update, Delete (CRUD) Tasks
+- ***Create, Read, Update, Delete (CRUD) Tasks:*** Users can manage tasks completely through an intuitive UI
 
-- Task Scheduling with Start/End Dates
+- ***Task Progress Visualization:*** Users can monitor their task completion percentage directly from the Profile Screen.
 
-- Task Completion Tracking
+✏️ **Adding/Updating Tasks :** While creating or editing a task, users are required to fill in the following:
 
-- Task Progress Visualization
+- What are you planning? — Enter a concise title or name for the task.
 
-✏️ **Adding/Updating Tasks :** Users can add new or edit previous tasks by providing the following details:
+- Write a task description — Add any details necessary to describe the task.
 
-- Title: The name of the task.
+- Start Date — The date when the task should begin.
 
-- Description: Details about the task.
+- End Date — The deadline or due date for the task.
 
-- Start Date: The date when the task begins.
+- Specific Hour Reminder (Optional) — Enable a checkbox and select a specific hour if the user wants a notification for this task at a particular time.
 
-- End Date: The date when the task should end.
+🛠️ **How to Perform Task CRUD Operations :**
 
-- Each task comes with three management options:
+✅ ***Add Task:*** Tap the Floating Action Button (FAB) on the main screen to open the task creation form.
 
-- Edit Task: Slide from left to right to modify task details.
+✏️ ***Edit Task:*** Slide the task card from left to right to open the edit screen and modify task details.
 
-- Delete Task: Slide from right to left to remove the task.
+🗑️ ***Delete Task:*** Slide the task card from right to left to delete the task permanently.
 
-- Mark as Done: Mark pending tasks as completed.
+✔️ ***Mark as Done:*** Slide the task card from right to left and tap the "Mark as Done" button to complete the task.
 
 🎨 **UI/UX**
 - Dark/Light Theme Support
@@ -65,13 +65,13 @@ TaskTracker is more than just a task management tool—it is a productivity part
 
 🔔 **Notification System**
 
-- **Task Addition Notification:** A notification is displayed whenever a new task is added.
+- **Task Addition Notification:** A local notification is triggered immediately when a new task is added, confirming the action.
 
-- **Morning Reminder:** Reminds the user to complete or add new tasks.
+- **Pending Task Notification:** Periodic notifications (default: every 1 hour) remind users about only those pending tasks whose end date matches the current day. The user can customize the reminder frequency from the Profile Screen.
 
-- **Night Reminder:** Notifies the user about pending tasks.
+- **Specific Hour Task Notification:** While adding or updating a task, users can enable an hour-specific notification by selecting a checkbox and setting a time. This reminder is sent in addition to periodic reminders.
 
-- **FCM Support:** Admins can send notifications to all or specific users.
+- **FCM Support:** Admin users can broadcast push notifications to all or selected users through the Admin Panel by specifying a title and description.
 
 ## App UI
 
